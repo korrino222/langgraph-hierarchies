@@ -12,10 +12,6 @@
 .mcp
 .mcp/
 
-# GitHub Actions / workflows (local only)
-.github
-.github/
-
 .config
 .config/
 
