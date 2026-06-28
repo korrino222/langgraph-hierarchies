@@ -1,0 +1,63 @@
+# ── Portfolio infrastructure ──────────────────────────────────────────────────
+
+# Agent knowledge (symlinked from project-kbs — dir or symlink)
+.agents
+.agents/
+
+# Cursor compat (generated from .agents/)
+.cursor
+.cursor/
+
+# MCP config (local secrets — dir or symlink)
+.mcp
+.mcp/
+
+# GitHub Actions / workflows (local only)
+.github
+.github/
+
+.config
+.config/
+
+# ── Secrets ───────────────────────────────────────────────────────────────────
+
+.env
+*.env
+
+# ── Python ────────────────────────────────────────────────────────────────────
+
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+env/
+.env/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Test and type-check caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+
+# Coverage
+.coverage
+coverage.xml
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+
+**/.DS_Store
+Thumbs.db
