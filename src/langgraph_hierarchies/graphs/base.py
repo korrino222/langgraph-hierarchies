@@ -82,6 +82,7 @@ class BaseGraph(StateGraph):
         enable_interrupts: bool = True,
         **kwargs: Any,
     ) -> CompiledGraph:
+        """Compile for top-level invocation with root defaults and interrupts enabled."""
         compiled = self.compile_graph(
             checkpointer=checkpointer,
             enable_interrupts=enable_interrupts,

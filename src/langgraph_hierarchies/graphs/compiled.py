@@ -12,9 +12,16 @@ from uuid import uuid4
 
 from langchain_core.messages import ToolMessage
 from langchain_core.runnables import Runnable, RunnableConfig
+from langgraph._internal._runnable import RunnableSeq
 from langgraph.graph.state import CompiledStateGraph
+from langgraph.runtime import Runtime
 from langgraph.types import Command
 from pydantic import BaseModel
+
+try:
+    from langgraph._internal._constants import CONFIG_KEY_RUNTIME
+except ImportError:  # pragma: no cover - pin fallback
+    CONFIG_KEY_RUNTIME = "__pregel_runtime"
 
 if TYPE_CHECKING:
     from langgraph_hierarchies.graphs.base import BaseGraph
@@ -73,6 +80,63 @@ class CompiledGraph(Runnable):
         suffix = "".join(random.choices(string.ascii_letters + string.digits, k=10))
         self.node_label = f"{self.name}_{suffix}"
 
+    @property
+    def steps(self) -> list:
+        """Expose inner Pregel for LangGraph subgraph discovery."""
+        return [self._compiled]
+
+    @staticmethod
+    def _inject_context(
+        config: RunnableConfig | None,
+        context: Any,
+    ) -> RunnableConfig:
+        config = dict(config or {})
+        configurable = dict(config.get("configurable", {}))
+        runtime = Runtime(context=context)
+        parent_runtime = configurable.get(CONFIG_KEY_RUNTIME)
+        if parent_runtime is not None:
+            runtime = parent_runtime.merge(runtime)
+        configurable[CONFIG_KEY_RUNTIME] = runtime
+        config["configurable"] = configurable
+        return config
+
+    def _prepare_config(
+        self,
+        config: RunnableConfig | None,
+        context: Any,
+    ) -> RunnableConfig | None:
+        if context is not None:
+            return self._inject_context(config, context)
+        return config
+
+    def _final_stream_state(
+        self,
+        config: RunnableConfig | None,
+        fallback: dict,
+        last_chunk: Any,
+    ) -> dict:
+        if isinstance(last_chunk, dict):
+            return last_chunk
+        if self._compiled.checkpointer is not None:
+            snapshot = self._compiled.get_state(config)
+            if snapshot is not None:
+                return snapshot.values
+        return fallback
+
+    async def _afinal_stream_state(
+        self,
+        config: RunnableConfig | None,
+        fallback: dict,
+        last_chunk: Any,
+    ) -> dict:
+        if isinstance(last_chunk, dict):
+            return last_chunk
+        if self._compiled.checkpointer is not None:
+            snapshot = await self._compiled.aget_state(config)
+            if snapshot is not None:
+                return snapshot.values
+        return fallback
+
     def invoke(
         self,
         input: Any,
@@ -81,12 +145,13 @@ class CompiledGraph(Runnable):
         context: Any = None,
         **kwargs: Any,
     ) -> Any:
+        config = self._prepare_config(config, context)
         if isinstance(input, Command):
-            return self._compiled.invoke(input, config, context=context, **kwargs)
+            return self._compiled.invoke(input, config, **kwargs)
 
         state = self.entry_hook(input, config)
         state = self.after_entry_hook(state, config)
-        state = self._compiled.invoke(state, config, context=context, **kwargs)
+        state = self._compiled.invoke(state, config, **kwargs)
         state = self.exit_hook(state, config)
         return self.after_exit_hook(state, config)
 
@@ -98,14 +163,13 @@ class CompiledGraph(Runnable):
         context: Any = None,
         **kwargs: Any,
     ) -> Any:
+        config = self._prepare_config(config, context)
         if isinstance(input, Command):
-            return await self._compiled.ainvoke(
-                input, config, context=context, **kwargs
-            )
+            return await self._compiled.ainvoke(input, config, **kwargs)
 
         state = await self.aentry_hook(input, config)
         state = self.after_entry_hook(state, config)
-        state = await self._compiled.ainvoke(state, config, context=context, **kwargs)
+        state = await self._compiled.ainvoke(state, config, **kwargs)
         state = await self.aexit_hook(state, config)
         return self.after_exit_hook(state, config)
 
@@ -117,7 +181,20 @@ class CompiledGraph(Runnable):
         context: Any = None,
         **kwargs: Any,
     ) -> Iterator[Any]:
-        yield from self._compiled.stream(input, config, context=context, **kwargs)
+        config = self._prepare_config(config, context)
+        if isinstance(input, Command):
+            yield from self._compiled.stream(input, config, **kwargs)
+            return
+
+        state = self.entry_hook(input, config)
+        state = self.after_entry_hook(state, config)
+        last_chunk: Any = None
+        for chunk in self._compiled.stream(state, config, **kwargs):
+            last_chunk = chunk
+            yield chunk
+        state = self._final_stream_state(config, state, last_chunk)
+        state = self.exit_hook(state, config)
+        self.after_exit_hook(state, config)
 
     async def astream(
         self,
@@ -127,10 +204,73 @@ class CompiledGraph(Runnable):
         context: Any = None,
         **kwargs: Any,
     ) -> AsyncIterator[Any]:
-        async for chunk in self._compiled.astream(
-            input, config, context=context, **kwargs
-        ):
+        config = self._prepare_config(config, context)
+        if isinstance(input, Command):
+            async for chunk in self._compiled.astream(input, config, **kwargs):
+                yield chunk
+            return
+
+        state = await self.aentry_hook(input, config)
+        state = self.after_entry_hook(state, config)
+        last_chunk: Any = None
+        async for chunk in self._compiled.astream(state, config, **kwargs):
+            last_chunk = chunk
             yield chunk
+        state = await self._afinal_stream_state(config, state, last_chunk)
+        state = await self.aexit_hook(state, config)
+        self.after_exit_hook(state, config)
+
+    def get_state(self, config: RunnableConfig, *, subgraphs: bool = False):
+        return self._compiled.get_state(config, subgraphs=subgraphs)
+
+    async def aget_state(self, config: RunnableConfig, *, subgraphs: bool = False):
+        return await self._compiled.aget_state(config, subgraphs=subgraphs)
+
+    def get_state_history(
+        self,
+        config: RunnableConfig,
+        *,
+        filter: dict | None = None,
+        before: RunnableConfig | None = None,
+        limit: int | None = None,
+    ):
+        return self._compiled.get_state_history(
+            config,
+            filter=filter,
+            before=before,
+            limit=limit,
+        )
+
+    async def aget_state_history(
+        self,
+        config: RunnableConfig,
+        *,
+        filter: dict | None = None,
+        before: RunnableConfig | None = None,
+        limit: int | None = None,
+    ):
+        return await self._compiled.aget_state_history(
+            config,
+            filter=filter,
+            before=before,
+            limit=limit,
+        )
+
+    def update_state(
+        self,
+        config: RunnableConfig,
+        values: dict | None,
+        as_node: str | None = None,
+    ):
+        return self._compiled.update_state(config, values, as_node=as_node)
+
+    async def aupdate_state(
+        self,
+        config: RunnableConfig,
+        values: dict | None,
+        as_node: str | None = None,
+    ):
+        return await self._compiled.aupdate_state(config, values, as_node=as_node)
 
     def after_entry_hook(
         self,
@@ -253,3 +393,6 @@ class CompiledGraph(Runnable):
             )
             state["messages"] = state.get("messages", []) + [tool_message]
         return state
+
+
+RunnableSeq.register(CompiledGraph)
