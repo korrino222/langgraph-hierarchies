@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import random
 import string
 from collections.abc import AsyncIterator, Iterator
@@ -143,11 +144,68 @@ class CompiledGraph(Runnable):
         state["iteration_number"] = 0
         return state
 
+    def _snapshot_parent_state(self, state: dict) -> None:
+        snapshot = {k: v for k, v in state.items() if k != "__subchain_stack__"}
+        snapshot = copy.deepcopy(snapshot)
+        stack = state.setdefault("__subchain_stack__", [])
+        stack.append({"agent_name": self.name, "saved_state": snapshot})
+        if "progress" not in state:
+            state["progress"] = {}
+
+    def _apply_entry_policy(self, state: dict) -> None:
+        policy = self.subchain_policy
+        if policy is None:
+            return
+
+        if policy.clear_messages:
+            state["messages"] = []
+
+        state["todo_lists"] = {}
+
+        if policy.reset_iteration:
+            state["iteration_number"] = 0
+
+        if policy.max_iterations is not None:
+            state["max_iterations"] = policy.max_iterations
+
+        if not policy.preserve_chat_with_operator:
+            state["chat_with_operator"] = []
+
+    def _apply_exit_policy(self, state: dict) -> dict:
+        policy = self.subchain_policy
+        stack = state.get("__subchain_stack__", [])
+        if policy is None or not stack:
+            return state
+
+        frame = stack.pop()
+        saved = frame["saved_state"]
+
+        if "progress" in state:
+            saved["progress"] = state["progress"]
+        if "current_agent_report" in state:
+            saved["current_agent_report"] = state["current_agent_report"]
+
+        for field_name in policy.merge_fields:
+            if field_name in state:
+                saved[field_name] = state[field_name]
+
+        for field_name in policy.discard_fields:
+            saved.pop(field_name, None)
+
+        saved["__subchain_stack__"] = stack
+        return saved
+
     def entry_hook(
         self,
         state: dict,
         config: RunnableConfig | None = None,
     ) -> dict:
+        if self.subchain_policy is not None:
+            self._snapshot_parent_state(state)
+            state = self.graph.entry_hook(self, state, config)
+            self._apply_entry_policy(state)
+            return state
+
         return self.graph.entry_hook(self, state, config)
 
     async def aentry_hook(
@@ -155,6 +213,12 @@ class CompiledGraph(Runnable):
         state: dict,
         config: RunnableConfig | None = None,
     ) -> dict:
+        if self.subchain_policy is not None:
+            self._snapshot_parent_state(state)
+            state = await self.graph.aentry_hook(self, state, config)
+            self._apply_entry_policy(state)
+            return state
+
         return await self.graph.aentry_hook(self, state, config)
 
     def exit_hook(
@@ -162,6 +226,7 @@ class CompiledGraph(Runnable):
         state: dict,
         config: RunnableConfig | None = None,
     ) -> dict:
+        state = self._apply_exit_policy(state)
         return self.graph.exit_hook(self, state, config)
 
     async def aexit_hook(
@@ -169,6 +234,7 @@ class CompiledGraph(Runnable):
         state: dict,
         config: RunnableConfig | None = None,
     ) -> dict:
+        state = self._apply_exit_policy(state)
         return await self.graph.aexit_hook(self, state, config)
 
     def after_exit_hook(
