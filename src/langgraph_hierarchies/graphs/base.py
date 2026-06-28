@@ -49,7 +49,9 @@ class BaseGraph(StateGraph):
 
     def build_topology(self) -> None:
         """Register core nodes and edges. Subclasses must override."""
-        raise NotImplementedError(f"{type(self).__name__} must implement build_topology()")
+        raise NotImplementedError(
+            f"{type(self).__name__} must implement build_topology()"
+        )
 
     def compile_graph(
         self,

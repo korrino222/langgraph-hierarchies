@@ -132,7 +132,9 @@ class ReactGraph(BaseGraph):
             f"\n\n[Iteration {current_iteration} of {max_iters} — "
             f"{iterations_left} iterations left]"
         )
-        reasoning_message = HumanMessage(content=self.message_reasoning + iteration_info)
+        reasoning_message = HumanMessage(
+            content=self.message_reasoning + iteration_info
+        )
 
         model = runtime.context.model
         if model is None:
@@ -147,7 +149,9 @@ class ReactGraph(BaseGraph):
             )
 
         model_with_tools = model.bind_tools(self.tools)
-        response = model_with_tools.invoke(state["messages"] + [reasoning_message], config)
+        response = model_with_tools.invoke(
+            state["messages"] + [reasoning_message], config
+        )
 
         return {
             "messages": [reasoning_message, response],
@@ -254,7 +258,9 @@ class ReactGraph(BaseGraph):
         self.add_node("reasoning", self.reasoning)
         self.add_node("empty_back", self.empty_back)
         self.add_node("final_back", self.final_back)
-        self.add_node("invalid_call_report_to_supervisor", self.invalid_call_report_to_supervisor)
+        self.add_node(
+            "invalid_call_report_to_supervisor", self.invalid_call_report_to_supervisor
+        )
 
         self.add_edge("system", "reasoning")
         self.add_edge("invalid_call_report_to_supervisor", "reasoning")

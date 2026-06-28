@@ -98,7 +98,9 @@ class CompiledGraph(Runnable):
         **kwargs: Any,
     ) -> Any:
         if isinstance(input, Command):
-            return await self._compiled.ainvoke(input, config, context=context, **kwargs)
+            return await self._compiled.ainvoke(
+                input, config, context=context, **kwargs
+            )
 
         state = await self.aentry_hook(input, config)
         state = self.after_entry_hook(state, config)
@@ -124,7 +126,9 @@ class CompiledGraph(Runnable):
         context: Any = None,
         **kwargs: Any,
     ) -> AsyncIterator[Any]:
-        async for chunk in self._compiled.astream(input, config, context=context, **kwargs):
+        async for chunk in self._compiled.astream(
+            input, config, context=context, **kwargs
+        ):
             yield chunk
 
     def after_entry_hook(
