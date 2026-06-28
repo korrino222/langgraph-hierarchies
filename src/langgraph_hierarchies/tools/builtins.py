@@ -72,6 +72,49 @@ def finish_task(
 
 
 @tool
+def todo_write(
+    items: list[str],
+    state: Annotated[dict, InjectedState],
+    tool_call_id: Annotated[str, InjectedToolCallId],
+) -> Command:
+    """Replace the current TODO list with the given items (all open)."""
+    todo_list = {item: False for item in items}
+    return Command(
+        update={
+            "todo_list": todo_list,
+            "messages": [
+                ToolMessage(
+                    content=f"TODO list updated ({len(items)} items).",
+                    tool_call_id=tool_call_id,
+                    id=str(uuid.uuid4()),
+                )
+            ],
+        }
+    )
+
+
+@tool
+def todo_complete(
+    item: str,
+    state: Annotated[dict, InjectedState],
+    tool_call_id: Annotated[str, InjectedToolCallId],
+) -> Command:
+    """Mark a TODO item as complete."""
+    return Command(
+        update={
+            "todo_list": {item: True},
+            "messages": [
+                ToolMessage(
+                    content=f"Completed: {item}",
+                    tool_call_id=tool_call_id,
+                    id=str(uuid.uuid4()),
+                )
+            ],
+        }
+    )
+
+
+@tool
 def raise_exception(
     reason: str,
     subject_agent: str = "",
@@ -101,3 +144,8 @@ def internal_toolkit() -> list[BaseTool]:
 def supervisor_toolkit() -> list[BaseTool]:
     """Tools for root/supervisor agents without a supervisor."""
     return [raise_exception]
+
+
+def todo_toolkit() -> list[BaseTool]:
+    """Tools for managing a flat TODO list."""
+    return [todo_write, todo_complete]

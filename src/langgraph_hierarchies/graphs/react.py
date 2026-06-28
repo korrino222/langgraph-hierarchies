@@ -184,7 +184,10 @@ class ReactGraph(BaseGraph):
         else:
             updated_report = str(report_args)
 
-        return Command(update={"current_agent_report": updated_report})
+        update: dict[str, Any] = {"current_agent_report": updated_report}
+        if "result" in report_args or state.get("is_finished"):
+            update["is_finished"] = True
+        return Command(update=update)
 
     def final_back(self, state: dict) -> dict:
         return state
@@ -262,7 +265,11 @@ class ReactGraph(BaseGraph):
                 return "invalid_call_report_to_supervisor"
             return Send(
                 "empty_back",
-                {**state, "current_agent_report": tool_call["args"]["result"]},
+                {
+                    **state,
+                    "current_agent_report": tool_call["args"]["result"],
+                    "is_finished": True,
+                },
             )
 
         return None

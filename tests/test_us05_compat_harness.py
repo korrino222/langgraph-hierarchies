@@ -28,7 +28,7 @@ STORY_STATUS: dict[str, str] = {
     "us03": "implemented",
     "us04": "implemented",
     "us05": "implemented",
-    "us06": "planned",
+    "us06": "implemented",
     "us07": "planned",
 }
 
