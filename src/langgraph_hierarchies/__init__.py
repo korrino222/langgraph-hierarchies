@@ -28,7 +28,7 @@ from langgraph_hierarchies.tools import (
 )
 from langgraph_hierarchies.types import Progress
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 
 __all__ = [
     "AgentStuckError",

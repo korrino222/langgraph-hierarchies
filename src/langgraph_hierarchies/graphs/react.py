@@ -190,7 +190,9 @@ class ReactGraph(BaseGraph):
         return Command(update=update)
 
     def final_back(self, state: dict) -> dict:
-        return state
+        # No-op terminal node — do not echo full state (avoids writing managed
+        # channels such as remaining_steps back into the pregel loop).
+        return {}
 
     def determine_action(self, state: dict) -> str | list[Send]:
         iteration_number = state.get("iteration_number", 0)

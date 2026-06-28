@@ -4,7 +4,7 @@
 
 Stateful, deeply-nested **compiled-subgraph** agent hierarchies on [LangGraph](https://github.com/langchain-ai/langgraph) — with declarative per-subchain state isolation and supervisor-controlled iteration safety.
 
-Flat delegation (Deep Agents, supervisor handoffs) is a good starting point. This library targets the production wall past that: recursive hierarchies where subagents are **real compiled subgraphs**, with explicit clear/merge/discard policy across satte fields — not ephemeral `task`-tool isolation alone.
+Flat delegation (Deep Agents, supervisor handoffs) is a good starting point. This library targets the production wall past that: recursive hierarchies where subagents are **real compiled subgraphs**, with explicit clear/merge/discard policy across state fields — not ephemeral `task`-tool isolation alone.
 
 ## How this relates to other libraries
 
@@ -34,12 +34,14 @@ Regression tests gate version bumps. A pair is listed here only once the full su
 
 CI runs `ruff` and `pytest` on every push/PR (Python 3.10–3.13). Tests use scripted models only — no LLM API keys required.
 
-## Roadmap (v0.1)
+## What's in 0.0.2
 
-- [ ] `BaseGraph` / `CompiledGraph` + phased compilation
-- [ ] `SubchainPolicy` (entry snapshot, clear/merge/discard, exit restore)
-- [ ] `ReactGraph` + iteration safety (per-agent limits, supervisor `task_iterations`, forced-exit report)
-- [ ] Minimal runnable hierarchy example
+- `BaseGraph` / `CompiledGraph` + phased compilation
+- `SubchainPolicy` (entry snapshot, clear/merge/discard, exit restore)
+- `ReactGraph` + iteration safety (per-agent limits, supervisor `task_iterations`, forced-exit report)
+- Root compile (`compile_as_root`) and unified invocation
+- Compatibility harness (per-story pytest markers, CI)
+- `TodoGraph` + todo toolkit; IRS hierarchy example in repo (`examples/irs_reporting/`)
 
 Planner/Executor, progress tracking, HITL: follow-on after v0.1.
 
