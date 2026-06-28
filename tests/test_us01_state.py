@@ -13,6 +13,8 @@ from langgraph_hierarchies.state.reducers import (
 from langgraph_hierarchies.state.schema import create_base_state_defaults
 from langgraph_hierarchies.types import Progress
 
+pytestmark = pytest.mark.us01
+
 
 def test_reduce_messages_replaces_by_id() -> None:
     first = HumanMessage(content="hello", id="msg-1")

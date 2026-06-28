@@ -1,8 +1,12 @@
 """US-01 SimpleGraph tests."""
 
+import pytest
+
 from langgraph_hierarchies.graphs.compiled import CompiledGraph
 from langgraph_hierarchies.graphs.simple import SimpleGraph
 from langgraph_hierarchies.state.schema import BaseState, create_base_state_defaults
+
+pytestmark = pytest.mark.us01
 
 
 class EchoSimpleGraph(SimpleGraph):

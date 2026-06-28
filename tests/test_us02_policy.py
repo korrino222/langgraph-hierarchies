@@ -1,11 +1,14 @@
 """US-02 SubchainPolicy entry/exit isolation tests."""
 
+import pytest
 from langchain_core.messages import AIMessage, HumanMessage
 
 from langgraph_hierarchies.graphs.compiled import SubchainPolicy
 from langgraph_hierarchies.graphs.simple import SimpleGraph
 from langgraph_hierarchies.state.schema import BaseState, create_base_state_defaults
 from langgraph_hierarchies.types import Progress
+
+pytestmark = pytest.mark.us02
 
 
 class PolicyTestGraph(SimpleGraph):

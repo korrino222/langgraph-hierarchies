@@ -22,7 +22,17 @@ Deep Agents already covers fan-out, parallel orchestration, and RLM-style recurs
 | --- | --- |
 | 0.0.x | 1.2.6 (pinned; see [releases](https://github.com/korrino222/langgraph-hierarchies/releases)) |
 
-Regression tests will gate version bumps. A pair is listed here only once the test suite is green for it.
+Regression tests gate version bumps. A pair is listed here only once the full suite is green for it.
+
+### Bumping the langgraph pin
+
+1. Update the `langgraph` constraint in `pyproject.toml`.
+2. Refresh the lockfile: `uv sync`.
+3. Run the full suite: `uv run pytest`.
+4. To isolate a failing story, run e.g. `uv run pytest -m us04`.
+5. When the suite is green, update the compatibility matrix above and cut a release.
+
+CI runs `ruff` and `pytest` on every push/PR (Python 3.10–3.13). Tests use scripted models only — no LLM API keys required.
 
 ## Roadmap (v0.1)
 

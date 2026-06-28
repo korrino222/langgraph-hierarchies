@@ -1,9 +1,13 @@
 """US-01 compile pipeline tests."""
 
+import pytest
+
 from langgraph_hierarchies.graphs.compiled import CompiledGraph
 from langgraph_hierarchies.graphs.react import ReactArgsSchema, ReactGraph
 from langgraph_hierarchies.graphs.simple import SimpleGraph
 from langgraph_hierarchies.state.schema import BaseState
+
+pytestmark = pytest.mark.us01
 
 
 class CompileTestGraph(SimpleGraph):

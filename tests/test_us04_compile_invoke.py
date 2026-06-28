@@ -6,6 +6,7 @@ import asyncio
 from typing import Any
 from unittest.mock import patch
 
+import pytest
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage
 from langchain_core.outputs import ChatGeneration, ChatResult
@@ -20,6 +21,8 @@ from langgraph_hierarchies.graphs.react import ReactGraph
 from langgraph_hierarchies.graphs.simple import SimpleGraph
 from langgraph_hierarchies.state.context import BaseContext
 from langgraph_hierarchies.state.schema import BaseState, create_base_state_defaults
+
+pytestmark = pytest.mark.us04
 
 
 class ScriptModel(BaseChatModel):
