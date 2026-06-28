@@ -30,6 +30,10 @@ Complete the task within your scope, then report to your supervisor.
 DEFAULT_MESSAGE_REASONING = "What should we do now?"
 
 MAX_ITERATIONS = 50
+MAX_ITERATION_THRESHOLD = 5
+_THRESHOLD_ALLOWED_TOOLS = frozenset(
+    {"report_to_supervisor", "finish_task", "raise_exception"}
+)
 
 
 class ReactArgsSchema(BaseModel):
@@ -128,10 +132,21 @@ class ReactGraph(BaseGraph):
         current_iteration = state.get("iteration_number", 0) + 1
         max_iters = state.get("max_iterations", self.max_iterations)
         iterations_left = max_iters - current_iteration
-        iteration_info = (
-            f"\n\n[Iteration {current_iteration} of {max_iters} — "
-            f"{iterations_left} iterations left]"
-        )
+        if iterations_left <= 0:
+            iteration_info = (
+                f"\n\n[BUDGET EXHAUSTED — Iteration {current_iteration} of "
+                f"{max_iters} — You MUST call report_to_supervisor NOW]"
+            )
+        elif iterations_left <= 3:
+            iteration_info = (
+                f"\n\n[Iteration {current_iteration} of {max_iters} — "
+                f"{iterations_left} iterations left — WRAP UP NOW]"
+            )
+        else:
+            iteration_info = (
+                f"\n\n[Iteration {current_iteration} of {max_iters} — "
+                f"{iterations_left} iterations left]"
+            )
         reasoning_message = HumanMessage(
             content=self.message_reasoning + iteration_info
         )
@@ -175,11 +190,24 @@ class ReactGraph(BaseGraph):
         return state
 
     def determine_action(self, state: dict) -> str | list[Send]:
+        iteration_number = state.get("iteration_number", 0)
+        max_iters = state.get("max_iterations", self.max_iterations)
+
+        if iteration_number >= max_iters + MAX_ITERATION_THRESHOLD:
+            return "forced_exit"
+
         reasoning_result = state["messages"][-1]
         if len(reasoning_result.tool_calls) == 0:
             return "reasoning"
 
         tool_call = reasoning_result.tool_calls[0]
+
+        if (
+            iteration_number >= max_iters
+            and tool_call["name"] not in _THRESHOLD_ALLOWED_TOOLS
+        ):
+            return "reject_non_reporting_call"
+
         logger.info("Tool call: %s", tool_call["name"])
 
         try:
@@ -253,6 +281,32 @@ class ReactGraph(BaseGraph):
         ]
         return {"messages": messages}
 
+    def reject_non_reporting_call(self, state: dict) -> dict:
+        from langgraph_hierarchies.tools.builtins import tool_fail_message
+
+        result = state["messages"][-1]
+        messages = [
+            tool_fail_message(
+                tool_call,
+                "Iteration budget exhausted. Stop working and call "
+                "report_to_supervisor with your partial progress.",
+            )
+            for tool_call in result.tool_calls
+        ]
+        return {"messages": messages}
+
+    def forced_exit(self, state: dict) -> Command:
+        max_iters = state.get("max_iterations", self.max_iterations)
+        iterations_used = state.get("iteration_number", 0)
+        partial = state.get("current_agent_report", "")
+        report = (
+            f"[FORCED EXIT] Agent exhausted iteration budget "
+            f"(max_iterations={max_iters}, iterations_used={iterations_used})."
+        )
+        if partial:
+            report += f"\n\nPartial progress:\n{partial}"
+        return Command(update={"current_agent_report": report})
+
     def build_topology(self) -> None:
         self.add_node("system", self.system)
         self.add_node("reasoning", self.reasoning)
@@ -261,15 +315,21 @@ class ReactGraph(BaseGraph):
         self.add_node(
             "invalid_call_report_to_supervisor", self.invalid_call_report_to_supervisor
         )
+        self.add_node("reject_non_reporting_call", self.reject_non_reporting_call)
+        self.add_node("forced_exit", self.forced_exit)
 
         self.add_edge("system", "reasoning")
         self.add_edge("invalid_call_report_to_supervisor", "reasoning")
+        self.add_edge("reject_non_reporting_call", "reasoning")
+        self.add_edge("forced_exit", "final_back")
         self.add_edge("final_back", END)
 
         self.conditional_states = {
             "reasoning": "reasoning",
             "tool": "tool",
             "invalid_call_report_to_supervisor": "invalid_call_report_to_supervisor",
+            "reject_non_reporting_call": "reject_non_reporting_call",
+            "forced_exit": "forced_exit",
             "END": "empty_back",
         }
 
