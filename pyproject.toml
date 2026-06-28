@@ -1,9 +1,72 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "langgraph-hierarchies"
-version = "0.1.0"
+version = "0.0.1"
 description = "LangGraph abstractions for hierarchical multi-agent systems"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "langgraph>=1.2.6,<2.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/korrino222/langgraph-hierarchies"
+Repository = "https://github.com/korrino222/langgraph-hierarchies"
+Issues = "https://github.com/korrino222/langgraph-hierarchies/issues"
+Changelog = "https://github.com/korrino222/langgraph-hierarchies/releases"
 
 [tool.portfolio]
 owner = "korrino222"
 repo = "langgraph-hierarchies"
 status = "active"
+
+[dependency-groups]
+test = [
+    "pytest>=8.0",
+    "pytest-cov",
+]
+lint = [
+    "ruff>=0.9",
+]
+dev = [
+    {include-group = "test"},
+    {include-group = "lint"},
+    "pre-commit>=4.0",
+]
+
+[tool.uv]
+default-groups = ["dev"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/langgraph_hierarchies"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers --strict-config"
+
+[tool.coverage.run]
+source = ["langgraph_hierarchies"]

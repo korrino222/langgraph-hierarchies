@@ -39,7 +39,17 @@ Planner/Executor, progress tracking, HITL: follow-on after v0.1.
 pip install langgraph-hierarchies
 ```
 
-Requires Python ≥3.11.
+Requires Python ≥3.10 (matches [LangGraph](https://pypi.org/project/langgraph/)).
+
+### Development
+
+Uses [uv](https://docs.astral.sh/uv/) (same toolchain as upstream LangGraph):
+
+```bash
+uv sync
+uv run pytest
+uv build   # sdist + wheel for PyPI
+```
 
 ## Disclaimer
 
