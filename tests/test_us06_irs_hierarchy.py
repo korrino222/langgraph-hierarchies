@@ -3,9 +3,6 @@
 from __future__ import annotations
 
 import pytest
-from langchain_core.messages import HumanMessage
-from langchain_core.runnables import RunnableConfig
-
 from irs_hierarchy.agents import (
     ARTIFACT_POLICY,
     EvidenceOrchestrator,
@@ -14,6 +11,9 @@ from irs_hierarchy.agents import (
 )
 from irs_hierarchy.data import build_evidence_artifact
 from irs_hierarchy.hierarchy import build_context
+from langchain_core.messages import HumanMessage
+from langchain_core.runnables import RunnableConfig
+
 from langgraph_hierarchies.state.context import BaseContext
 from langgraph_hierarchies.state.schema import create_base_state_defaults
 
