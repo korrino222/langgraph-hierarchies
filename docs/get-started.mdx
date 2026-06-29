@@ -1,0 +1,120 @@
+---
+title: Get started
+sidebarTitle: Get started
+description: Install langgraph-hierarchies and run a minimal parent/child hierarchy without an LLM API key.
+---
+
+## Install
+
+<CodeGroup>
+
+```bash pip
+pip install langgraph-hierarchies
+```
+
+```bash uv
+uv add langgraph-hierarchies
+```
+
+</CodeGroup>
+
+Requires Python ≥3.10 (matches [LangGraph](https://pypi.org/project/langgraph/)).
+
+## Minimal hierarchy
+
+The [`examples/minimal/hierarchy.py`](https://github.com/korrino222/langgraph-hierarchies/blob/main/examples/minimal/hierarchy.py) example demonstrates root compilation and unified invocation:
+
+- `compile_as_root()` for the top-level orchestrator
+- `context=` injection via `BaseContext(model=...)`
+- A child `ReactGraph` wired through `compiled_subgraphs`
+- Automatic `ToolMessage` generation when the child reports upward
+
+Run it from the repository root:
+
+```bash
+git clone https://github.com/korrino222/langgraph-hierarchies.git
+cd langgraph-hierarchies
+uv sync
+uv run python -m examples.minimal.hierarchy
+```
+
+Expected output:
+
+```text
+orchestrator complete
+```
+
+No LLM API key is required; the example uses a deterministic scripted model.
+
+## Walkthrough
+
+### 1. Define graph classes
+
+Each agent is a **class-as-factory** graph. Subclasses set `name` and `description`, then implement topology in `build_topology()` (provided by `ReactGraph`):
+
+```python
+from langgraph_hierarchies.graphs.react import ReactGraph
+from langgraph_hierarchies.state.context import BaseContext
+from langgraph_hierarchies.state.schema import BaseState
+
+
+class WorkerAgent(ReactGraph):
+    name = "worker"
+    description = "Completes a delegated task and reports upward"
+
+
+class OrchestratorAgent(ReactGraph):
+    name = "orchestrator"
+    description = "Delegates work to a worker subagent"
+
+    def compile_graph(self, *args, **kwargs):
+        worker = WorkerAgent(
+            state_schema=BaseState,
+            context_schema=BaseContext,
+        ).compile_graph()
+        return super().compile_graph(*args, compiled_subgraphs=[worker], **kwargs)
+```
+
+The orchestrator compiles its child **before** itself, then passes `compiled_subgraphs=[worker]` into its own compilation. The child becomes an invokable tool on the parent.
+
+### 2. Compile as root
+
+Top-level invocation uses `compile_as_root()` — it enables interrupts and accepts root state defaults:
+
+```python
+orchestrator = OrchestratorAgent(
+    state_schema=BaseState,
+    context_schema=BaseContext,
+    reports_to_supervisor=False,
+)
+root = orchestrator.compile_as_root(
+    state_defaults=create_base_state_defaults(),
+)
+```
+
+### 3. Invoke with context
+
+Inject the model (and other runtime dependencies) through `BaseContext`:
+
+```python
+from langchain_core.runnables import RunnableConfig
+
+result = root.invoke(
+    create_base_state_defaults(),
+    config=RunnableConfig(recursion_limit=50),
+    context=build_context(),  # BaseContext(model=ScriptedModel(...))
+)
+print(result["current_agent_report"])
+```
+
+The scripted model drives a fixed sequence: delegate to worker → worker reports → orchestrator finishes.
+
+## Next steps
+
+<Card title="SubchainPolicy" icon="layers" href="/concepts/subchain-policy">
+  Learn how declarative state policies isolate context at subchain boundaries.
+</Card>
+
+<Card title="Compatibility" icon="table" href="/compatibility">
+  See the pinned LangGraph version and how to bump it safely.
+</Card>

@@ -1,0 +1,46 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "name": "langgraph-hierarchies",
+  "theme": "mint",
+  "colors": {
+    "primary": "#1a7f37",
+    "light": "#22c55e",
+    "dark": "#15803d"
+  },
+  "favicon": "/favicon.svg",
+  "logo": {
+    "light": "/logo.svg",
+    "dark": "/logo.svg"
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting started",
+            "pages": ["index", "get-started", "compatibility"]
+          },
+          {
+            "group": "Concepts",
+            "pages": ["concepts/subchain-policy"]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "GitHub",
+          "href": "https://github.com/korrino222/langgraph-hierarchies",
+          "icon": "github"
+        },
+        {
+          "anchor": "PyPI",
+          "href": "https://pypi.org/project/langgraph-hierarchies/",
+          "icon": "box"
+        }
+      ]
+    }
+  }
+}
