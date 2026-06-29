@@ -43,6 +43,10 @@ Regression tests gate version bumps. A pair is listed here only once the full su
 
 CI runs `ruff` and `pytest` on every push/PR (Python 3.10–3.13). Tests use scripted models only — no LLM API keys required.
 
+## What's in 0.0.5
+
+- **Parallel tool calls** — `ReactGraph` dispatches multiple flat-tool calls in parallel; parallel batches that include a subagent are blocked with one error `ToolMessage` per `tool_call_id` so chat history stays valid for the next LLM turn
+
 ## What's in 0.0.4
 
 - **Breaking rename** — `SubchainPolicy` → `SubagentPolicy`, `subchain_policy` → `subagent_policy`, `__subchain_stack__` → `__subagent_stack__` (no aliases; update imports and checkpoint state keys)
