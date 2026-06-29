@@ -1,20 +1,27 @@
 # langgraph-hierarchies
 
+**Decomposable agent hierarchies for [LangGraph](https://github.com/langchain-ai/langgraph).**
+
 **Status: early development (0.0.x).** API and scope are not stable. v0.1 will ship the keystone slice below.
 
-Stateful, deeply-nested **compiled-subgraph** agent hierarchies on [LangGraph](https://github.com/langchain-ai/langgraph) — with declarative per-subchain state isolation and supervisor-controlled iteration safety.
+An agentic system is **decomposable** when it can be split into finer agentic systems — each developed, run, and evaluated in isolation, with its own context — that still achieve the goal of the whole. [Decomposability in AI workflows](https://medium.com/@ishish222/decomposability-in-ai-workflows-what-it-is-and-why-you-want-it-c12c9a939565) explains why that matters: lean context per unit, benchmarkable seams, durable checkpoints, and improvements that stop colliding across stages.
 
-Flat delegation (Deep Agents, supervisor handoffs) is a good starting point. This library targets the production wall past that: recursive hierarchies where subagents are **real compiled subgraphs**, with explicit clear/merge/discard policy across state fields — not ephemeral `task`-tool isolation alone.
+**langgraph-hierarchies** is the library for building that on LangGraph: recursive hierarchies of **real compiled subgraphs**, with declarative per-subchain context isolation (`SubchainPolicy`), supervisor-controlled iteration budgets, and artifact handoff across boundaries — not one swelling monolith, not ephemeral `task`-tool isolation alone.
+
+Flat delegation (supervisor handoffs, Deep Agents) is a good starting point. This library targets the production wall past that: invokable subagents that nest as deep as the problem needs while preserving streamability, durability, and resumability at every level.
 
 ## How this relates to other libraries
 
 | | [langgraph-supervisor](https://pypi.org/project/langgraph-supervisor/) | [Deep Agents](https://pypi.org/project/deepagents/) | langgraph-hierarchies |
 | --- | --- | --- | --- |
 | Model | Supervisor → workers (handoff tools) | Harness + subagents (`task` / programmatic `task()`) | Class-as-factory graphs, phased compile, `SubchainPolicy` |
-| Nesting | Multi-level supervisors | Fan-out / data recursion (partial); not stateful deep trees | Recursive compiled subgraphs + declarative state policy |
-| Best for | Quick hierarchical routing | General long-horizon agents | Production-grade deep hierarchies with accountability |
+| Context isolation | Shared parent history | Ephemeral subagent context | Declarative clear/merge/discard per subchain boundary |
+| Nesting | Multi-level supervisors | Fan-out / data recursion (partial); not stateful deep trees | Recursive compiled subgraphs + explicit state policy |
+| Best for | Quick hierarchical routing | General long-horizon agents | Production decomposable hierarchies — benchmarkable units, lean checkpoints |
 
 Deep Agents already covers fan-out, parallel orchestration, and RLM-style recursion over data ([programmatic subagents](https://docs.langchain.com/oss/python/deepagents/programmatic-subagents), June 2026). This project does **not** try to replace that.
+
+See [`examples/irs_reporting/`](examples/irs_reporting/) for a five-stage pipeline with artifact-only handoff between compiled subgraphs — the IRS workflow from the article, decomposed.
 
 ## Compatibility
 
@@ -36,12 +43,14 @@ CI runs `ruff` and `pytest` on every push/PR (Python 3.10–3.13). Tests use scr
 
 ## What's in 0.0.2
 
-- `BaseGraph` / `CompiledGraph` + phased compilation
-- `SubchainPolicy` (entry snapshot, clear/merge/discard, exit restore)
-- `ReactGraph` + iteration safety (per-agent limits, supervisor `task_iterations`, forced-exit report)
-- Root compile (`compile_as_root`) and unified invocation
-- Compatibility harness (per-story pytest markers, CI)
-- `TodoGraph` + todo toolkit; IRS hierarchy example in repo (`examples/irs_reporting/`)
+The mechanics behind decomposable hierarchies:
+
+- `BaseGraph` / `CompiledGraph` + phased compilation — each unit is a real invokable subgraph
+- `SubchainPolicy` — entry snapshot, clear/merge/discard, exit restore; isolate context at every seam
+- `ReactGraph` + iteration safety — per-agent limits, supervisor `task_iterations`, forced-exit report
+- Root compile (`compile_as_root`) and unified invocation — stream and checkpoint through the full tree
+- Compatibility harness (per-story pytest markers, CI) — benchmark units in isolation
+- `TodoGraph` + todo toolkit — batch processing with flat context; IRS hierarchy example (`examples/irs_reporting/`)
 
 Planner/Executor, progress tracking, HITL: follow-on after v0.1.
 
