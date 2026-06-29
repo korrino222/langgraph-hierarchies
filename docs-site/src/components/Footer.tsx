@@ -1,5 +1,6 @@
 import type { NavPage } from '@mintlify/astro/helpers';
 import { Icon } from '@mintlify/components';
+import { withBase } from '../utils/withBase';
 
 interface FooterProps {
   prev: NavPage | null;
@@ -13,7 +14,7 @@ export default function Footer({ prev, next }: FooterProps) {
     <nav className="mt-12 flex items-center justify-between">
       {prev ? (
         <a
-          href={prev.href}
+          href={withBase(prev.href)}
           className="group flex items-center gap-1.5 text-sm font-medium text-gray-500 no-underline! hover:text-gray-900 transition-colors duration-150"
         >
           <Icon
@@ -30,7 +31,7 @@ export default function Footer({ prev, next }: FooterProps) {
       )}
       {next ? (
         <a
-          href={next.href}
+          href={withBase(next.href)}
           className="group flex items-center gap-1.5 text-sm font-medium text-gray-500 no-underline! hover:text-gray-900 transition-colors duration-150"
         >
           {next.title}

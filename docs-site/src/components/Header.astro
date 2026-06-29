@@ -1,5 +1,6 @@
 ---
 import { MobileNavToggle } from './MobileHeaderActions';
+import { withBase } from '../utils/withBase';
 
 interface Props {
   tabs: import('@mintlify/astro/helpers').TabInfo[] | null;
@@ -53,7 +54,7 @@ const homeHref = import.meta.env.BASE_URL;
             <div class="h-full flex text-sm gap-x-6">
               {tabs.map((tab) => (
                 <a
-                  href={tab.href}
+                  href={withBase(tab.href)}
                   class:list={[
                     'group relative h-full gap-2 flex items-center font-medium text-gray-600 hover:text-gray-800',
                     tab.isActive &&

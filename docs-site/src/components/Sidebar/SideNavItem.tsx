@@ -1,6 +1,7 @@
 import { cn, Icon } from '@mintlify/components';
 import type { NavPage } from '@mintlify/astro/helpers';
 import type { SidebarItemStyle } from './types';
+import { withBase } from '../../utils/withBase';
 
 export interface SideNavItemProps {
   page: NavPage;
@@ -60,7 +61,7 @@ export function SideNavItem({
   return (
     <li className="relative scroll-m-4 first:scroll-m-20" data-title={title}>
       <a
-        href={page.href}
+        href={withBase(page.href)}
         className={cn(
           'group flex items-center pl-4 pr-3 py-1.5 cursor-pointer gap-x-3 text-left',
           isOneWord && 'wrap-break-word hyphens-auto',

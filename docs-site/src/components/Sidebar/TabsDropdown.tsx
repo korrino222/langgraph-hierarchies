@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { cn, Icon } from '@mintlify/components';
 import type { TabInfo } from '@mintlify/astro/helpers';
+import { withBase } from '../../utils/withBase';
 
 interface TabsDropdownProps {
   tabs: TabInfo[];
@@ -39,7 +40,7 @@ export function TabsDropdown({ tabs }: TabsDropdownProps) {
             {tabs.map((tab) => (
               <a
                 key={tab.name}
-                href={tab.href}
+                href={withBase(tab.href)}
                 className={cn(
                   'flex items-center justify-between px-2.5 py-2 text-sm font-medium rounded-md hover:bg-gray-100',
                   tab.isActive ? 'text-primary' : 'text-gray-800',

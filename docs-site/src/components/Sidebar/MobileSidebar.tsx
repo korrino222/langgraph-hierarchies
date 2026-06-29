@@ -6,6 +6,7 @@ import { type SidebarItemStyle, type AnchorItem } from './types';
 import { SidebarEntries } from './SidebarEntries';
 import { Anchors } from './Anchors';
 import { TabsDropdown } from './TabsDropdown';
+import { withBase } from '../../utils/withBase';
 
 interface MobileSidebarProps {
   navigation: NavNode;
@@ -78,8 +79,8 @@ export function MobileSidebar({
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between px-4 pt-6 pb-4">
             <img
-              src="/logo/light.svg"
-              alt="Mint Starter Kit"
+              src={withBase('/logo.svg')}
+              alt="langgraph-hierarchies"
               className="h-7 w-auto"
             />
           </div>

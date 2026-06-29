@@ -8,8 +8,8 @@
 @import './kbd.css';
 
 :root {
-  --primary: #16a34a;
-  --color-primary: #16a34a;
+  --primary: #1a7f37;
+  --color-primary: #1a7f37;
 }
 
 @theme {
