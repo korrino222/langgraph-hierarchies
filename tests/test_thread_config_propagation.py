@@ -195,7 +195,9 @@ def test_stream_entrypoint_normalized() -> None:
     graph = RootGraph(state_schema=BaseState)
     compiled = graph.compile_as_root()
 
-    with patch.object(compiled._compiled, "stream", return_value=iter([{}])) as inner_stream:
+    with patch.object(
+        compiled._compiled, "stream", return_value=iter([{}])
+    ) as inner_stream:
         list(
             compiled.stream(
                 create_base_state_defaults(),
