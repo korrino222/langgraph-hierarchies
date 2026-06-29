@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Hashable
 from typing import Any
+from uuid import uuid4
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
@@ -202,10 +203,11 @@ class ReactGraph(BaseGraph):
             return "forced_exit"
 
         reasoning_result = state["messages"][-1]
-        if len(reasoning_result.tool_calls) == 0:
+        tool_calls = reasoning_result.tool_calls
+        if len(tool_calls) == 0:
             return "reasoning"
 
-        tool_call = reasoning_result.tool_calls[0]
+        tool_call = tool_calls[0]
 
         if (
             iteration_number >= max_iters
@@ -215,16 +217,48 @@ class ReactGraph(BaseGraph):
 
         logger.info("Tool call: %s", tool_call["name"])
 
-        try:
-            result = self._handle_tool_call(state, reasoning_result, tool_call)
-        except AgentStuckError:
-            raise
+        subgraph_names = {sg.name for sg in self.compiled_subgraphs}
+        if len(tool_calls) > 1:
+            has_subgraph_call = any(tc["name"] in subgraph_names for tc in tool_calls)
+            if has_subgraph_call:
+                logger.warning(
+                    "%s: LLM produced %d parallel tool calls including a subagent. "
+                    "Blocking parallel agent dispatch.",
+                    self.name,
+                    len(tool_calls),
+                )
+                return "invalid_parallel_subgraph_call"
 
-        if isinstance(result, str):
-            return result
-        if isinstance(result, Send):
-            return [result]
-        return "tool"
+        sends: list[Send] = []
+        for tool_call in tool_calls:
+            try:
+                result = self._handle_tool_call(state, reasoning_result, tool_call)
+            except AgentStuckError:
+                raise
+
+            if len(tool_calls) == 1:
+                if isinstance(result, str):
+                    return result
+                if isinstance(result, Send):
+                    return [result]
+                return "tool"
+
+            isolated_msg = reasoning_result.model_copy(
+                update={"tool_calls": [tool_call], "id": str(uuid4())}
+            )
+            isolated_messages = state["messages"][:-1] + [isolated_msg]
+
+            if isinstance(result, str):
+                return result
+            if isinstance(result, Send):
+                send_state = result.arg
+                send_state["messages"] = isolated_messages
+                sends.append(result)
+            else:
+                single_tool_state = {**state, "messages": isolated_messages}
+                sends.append(Send("tool", single_tool_state))
+
+        return sends
 
     def _handle_tool_call(
         self,
@@ -276,6 +310,21 @@ class ReactGraph(BaseGraph):
 
         return None
 
+    def invalid_parallel_subgraph_call(self, state: dict) -> dict:
+        from langgraph_hierarchies.tools.builtins import tool_fail_message
+
+        result = state["messages"][-1]
+        messages = [
+            tool_fail_message(
+                tool_call,
+                "Parallel tool calls that include a sub-agent are not supported. "
+                "Call the sub-agent alone in a separate step. "
+                "None of the tools were executed. Re-issue them one by one.",
+            )
+            for tool_call in result.tool_calls
+        ]
+        return {"messages": messages}
+
     def invalid_call_report_to_supervisor(self, state: dict) -> dict:
         from langgraph_hierarchies.tools.builtins import tool_fail_message
 
@@ -324,11 +373,15 @@ class ReactGraph(BaseGraph):
         self.add_node(
             "invalid_call_report_to_supervisor", self.invalid_call_report_to_supervisor
         )
+        self.add_node(
+            "invalid_parallel_subgraph_call", self.invalid_parallel_subgraph_call
+        )
         self.add_node("reject_non_reporting_call", self.reject_non_reporting_call)
         self.add_node("forced_exit", self.forced_exit)
 
         self.add_edge("system", "reasoning")
         self.add_edge("invalid_call_report_to_supervisor", "reasoning")
+        self.add_edge("invalid_parallel_subgraph_call", "reasoning")
         self.add_edge("reject_non_reporting_call", "reasoning")
         self.add_edge("forced_exit", "final_back")
         self.add_edge("final_back", END)
@@ -337,6 +390,7 @@ class ReactGraph(BaseGraph):
             "reasoning": "reasoning",
             "tool": "tool",
             "invalid_call_report_to_supervisor": "invalid_call_report_to_supervisor",
+            "invalid_parallel_subgraph_call": "invalid_parallel_subgraph_call",
             "reject_non_reporting_call": "reject_non_reporting_call",
             "forced_exit": "forced_exit",
             "END": "empty_back",
