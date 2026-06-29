@@ -26,6 +26,11 @@ except ImportError:  # pragma: no cover - pin fallback
 if TYPE_CHECKING:
     from langgraph_hierarchies.graphs.base import BaseGraph
 
+from langgraph_hierarchies.tracing.config import (
+    ensure_runnable_config_dict,
+    normalize_thread_config,
+)
+
 
 @dataclass
 class SubchainPolicy:
@@ -104,9 +109,11 @@ class CompiledGraph(Runnable):
         self,
         config: RunnableConfig | None,
         context: Any,
-    ) -> RunnableConfig | None:
+    ) -> RunnableConfig:
+        config = ensure_runnable_config_dict(config)
+        config = normalize_thread_config(config, context)
         if context is not None:
-            return self._inject_context(config, context)
+            config = self._inject_context(config, context)
         return config
 
     def _final_stream_state(

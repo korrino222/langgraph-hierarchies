@@ -26,18 +26,25 @@ from langgraph_hierarchies.tools import (
     todo_complete,
     todo_write,
 )
+from langgraph_hierarchies.tracing import (
+    build_invoke_config,
+    normalize_thread_config,
+    resolve_thread_id,
+)
 from langgraph_hierarchies.types import Progress
 
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 
 __all__ = [
     "AgentStuckError",
     "BaseContext",
     "BaseGraph",
     "BaseState",
+    "build_invoke_config",
     "CompiledGraph",
     "HierarchyError",
     "InfrastructureBlocker",
+    "normalize_thread_config",
     "Progress",
     "ReactGraph",
     "SimpleGraph",
@@ -49,6 +56,7 @@ __all__ = [
     "raise_exception",
     "reducer_upsert",
     "report_to_supervisor",
+    "resolve_thread_id",
     "todo_complete",
     "todo_write",
 ]

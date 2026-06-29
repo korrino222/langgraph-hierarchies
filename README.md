@@ -43,6 +43,10 @@ Regression tests gate version bumps. A pair is listed here only once the full su
 
 CI runs `ruff` and `pytest` on every push/PR (Python 3.10–3.13). Tests use scripted models only — no LLM API keys required.
 
+## What's in 0.0.3
+
+- **LangSmith threads** — automatic `thread_id` normalization into `RunnableConfig` metadata at invoke time (see below)
+
 ## What's in 0.0.2
 
 The mechanics behind decomposable hierarchies:
@@ -55,6 +59,28 @@ The mechanics behind decomposable hierarchies:
 - `TodoGraph` + todo toolkit — batch processing with flat context; IRS hierarchy example (`examples/irs_reporting/`)
 
 Planner/Executor, progress tracking, HITL: follow-on after v0.1.
+
+### LangSmith threads
+
+LangSmith groups multi-turn conversations when runs share `metadata.thread_id`
+(or `session_id`). The library normalizes thread IDs automatically at invoke time.
+Provide **any one** of:
+
+- `config["configurable"]["thread_id"]` — LangGraph checkpoint convention
+- `config["metadata"]["thread_id"]` — explicit LangSmith thread
+- `context.thread_id` on your context dataclass (e.g. `BaseContext`)
+
+All three are backfilled when missing. Explicit `metadata.thread_id` is never overwritten.
+
+```python
+from langgraph_hierarchies import BaseContext, build_invoke_config
+
+config = build_invoke_config(thread_id="demo-run-1", recursion_limit=200)
+result = root.invoke(state, config=config, context=BaseContext(model=model))
+```
+
+With `LANGCHAIN_TRACING_V2=true`, open your project → **Threads** tab and filter by the thread ID.
+Child subgraph spans inherit the same config via LangGraph propagation.
 
 ## Install
 
