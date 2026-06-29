@@ -6,14 +6,14 @@ import pytest
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableConfig
 
-from examples.irs_reporting.agents import (
+from irs_hierarchy.agents import (
     ARTIFACT_POLICY,
     EvidenceOrchestrator,
     IRSState,
     compile_root,
 )
-from examples.irs_reporting.data import build_evidence_artifact
-from examples.irs_reporting.hierarchy import build_context
+from irs_hierarchy.data import build_evidence_artifact
+from irs_hierarchy.hierarchy import build_context
 from langgraph_hierarchies.state.context import BaseContext
 from langgraph_hierarchies.state.schema import create_base_state_defaults
 
@@ -81,7 +81,7 @@ def test_evidence_stage_runs_in_isolation_with_fixture_artifact() -> None:
         context_schema=BaseContext,
     ).compile_graph()
 
-    from examples.irs_reporting.model import RuleBasedModel, build_all_responses
+    from irs_hierarchy.model import RuleBasedModel, build_all_responses
 
     responses = build_all_responses(TEST_POSITIONS)
     evidence_responses = responses[2:6]

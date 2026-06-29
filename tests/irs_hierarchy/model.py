@@ -9,7 +9,7 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage
 from langchain_core.outputs import ChatGeneration, ChatResult
 
-from examples.irs_reporting.data import (
+from irs_hierarchy.data import (
     STAGE_NAMES,
     build_final_report,
     build_reconciliation_artifact,

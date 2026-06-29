@@ -45,10 +45,12 @@ The mechanics behind decomposable hierarchies:
 
 Planner/Executor, progress tracking, and HITL are follow-on after v0.1.
 
-## Examples in the repository
+## Examples
 
-- [`examples/minimal/`](https://github.com/korrino222/langgraph-hierarchies/tree/main/examples/minimal) — smallest parent/child hierarchy; no LLM API key required
-- [`examples/irs_reporting/`](https://github.com/korrino222/langgraph-hierarchies/tree/main/examples/irs_reporting) — five-stage pipeline with artifact-only handoff between compiled subgraphs
+Worked examples live in [langgraph-hierarchies-examples](https://github.com/korrino222/langgraph-hierarchies-examples), a companion repository that tracks the published library releases:
+
+- **Example 01 — Monolith** — one agent, one flat `messages` list; the "before" picture
+- **Example 02 — Artifact Handoff** — root orchestrator delegates to specialist children; `SubagentPolicy` clears messages on entry and merges only `pipeline_artifact` on exit
 
 ## Disclaimer
 

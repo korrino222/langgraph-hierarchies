@@ -1,4 +1,4 @@
-"""Deterministic fixture data for the IRS reporting hierarchy example."""
+"""Deterministic fixture data for the IRS reporting hierarchy tests."""
 
 from __future__ import annotations
 

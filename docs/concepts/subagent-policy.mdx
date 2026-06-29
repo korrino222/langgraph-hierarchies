@@ -76,11 +76,7 @@ ARTIFACT_POLICY = SubagentPolicy(
 
 Each stage writes its output to `pipeline_artifact`. The next stage receives only that artifact — not the upstream message history or intermediate tool traces.
 
-See [`examples/irs_reporting/`](https://github.com/korrino222/langgraph-hierarchies/tree/main/examples/irs_reporting) for a five-stage pipeline demonstrating this pattern. Run it with:
-
-```bash
-uv run python -m examples.irs_reporting.hierarchy
-```
+See [Example 02 — Artifact Handoff](https://github.com/korrino222/langgraph-hierarchies-examples) in the companion examples repository for a worked demonstration of this pattern.
 
 ## When to use which fields
 

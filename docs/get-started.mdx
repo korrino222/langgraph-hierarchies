@@ -22,29 +22,12 @@ Requires Python ≥3.10 (matches [LangGraph](https://pypi.org/project/langgraph/
 
 ## Minimal hierarchy
 
-The [`examples/minimal/hierarchy.py`](https://github.com/korrino222/langgraph-hierarchies/blob/main/examples/minimal/hierarchy.py) example demonstrates root compilation and unified invocation:
+The following demonstrates root compilation and unified invocation:
 
 - `compile_as_root()` for the top-level orchestrator
 - `context=` injection via `BaseContext(model=...)`
 - A child `ReactGraph` wired through `compiled_subgraphs`
 - Automatic `ToolMessage` generation when the child reports upward
-
-Run it from the repository root:
-
-```bash
-git clone https://github.com/korrino222/langgraph-hierarchies.git
-cd langgraph-hierarchies
-uv sync
-uv run python -m examples.minimal.hierarchy
-```
-
-Expected output:
-
-```text
-orchestrator complete
-```
-
-No LLM API key is required; the example uses a deterministic scripted model.
 
 ## Walkthrough
 

@@ -23,7 +23,7 @@ Flat delegation (supervisor handoffs, Deep Agents) is a good starting point. Thi
 
 Deep Agents already covers fan-out, parallel orchestration, and RLM-style recursion over data ([programmatic subagents](https://docs.langchain.com/oss/python/deepagents/programmatic-subagents), June 2026). This project does **not** try to replace that.
 
-See [`examples/irs_reporting/`](examples/irs_reporting/) for a five-stage pipeline with artifact-only handoff between compiled subgraphs — the IRS workflow from the article, decomposed.
+See [langgraph-hierarchies-examples](https://github.com/korrino222/langgraph-hierarchies-examples) for worked examples demonstrating the before/after decomposability arc.
 
 ## Compatibility
 
@@ -60,7 +60,7 @@ The mechanics behind decomposable hierarchies:
 - `ReactGraph` + iteration safety — per-agent limits, supervisor `task_iterations`, forced-exit report
 - Root compile (`compile_as_root`) and unified invocation — stream and checkpoint through the full tree
 - Compatibility harness (per-story pytest markers, CI) — benchmark units in isolation
-- `TodoGraph` + todo toolkit — batch processing with flat context; IRS hierarchy example (`examples/irs_reporting/`)
+- `TodoGraph` + todo toolkit — batch processing with flat context; IRS hierarchy test fixture (`tests/irs_hierarchy/`)
 
 Planner/Executor, progress tracking, HITL: follow-on after v0.1.
 

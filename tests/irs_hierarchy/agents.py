@@ -1,4 +1,4 @@
-"""Graph classes for the IRS reporting hierarchy example."""
+"""Graph classes for the IRS reporting hierarchy test fixture."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from typing import Annotated, Any
 from langchain_core.runnables import RunnableConfig
 from langgraph.types import Command
 
-from examples.irs_reporting.data import (
+from irs_hierarchy.data import (
     NUM_POSITIONS,
     SOURCE_DOCUMENTS,
     STAGE_NAMES,
