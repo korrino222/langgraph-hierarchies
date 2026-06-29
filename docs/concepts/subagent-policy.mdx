@@ -1,17 +1,17 @@
 ---
-title: SubchainPolicy
-sidebarTitle: SubchainPolicy
-description: Declarative per-subchain state isolation — clear, merge, and discard fields across hierarchy boundaries.
+title: SubagentPolicy
+sidebarTitle: SubagentPolicy
+description: Declarative per-subagent state isolation — clear, merge, and discard fields across hierarchy boundaries.
 ---
 
 When a parent delegates to a child subgraph, you usually do **not** want the child to inherit the parent's full message history. You also need a controlled way to pass artifacts back up without leaking intermediate reasoning.
 
-`SubchainPolicy` declares what happens at each subchain **entry** and **exit**:
+`SubagentPolicy` declares what happens at each subagent **entry** and **exit**:
 
 ```python
-from langgraph_hierarchies.graphs.compiled import SubchainPolicy
+from langgraph_hierarchies.graphs.compiled import SubagentPolicy
 
-ARTIFACT_POLICY = SubchainPolicy(
+ARTIFACT_POLICY = SubagentPolicy(
     clear_messages=True,
     merge_fields=["pipeline_artifact"],
 )
@@ -26,7 +26,7 @@ class ExtractionOrchestrator(ReactGraph):
 
     def __init__(self, **kwargs):
         super().__init__(
-            subchain_policy=ARTIFACT_POLICY,
+            subagent_policy=ARTIFACT_POLICY,
             **kwargs,
         )
 ```
@@ -35,7 +35,7 @@ class ExtractionOrchestrator(ReactGraph):
 
 | Field | Default | Effect |
 | --- | --- | --- |
-| `clear_messages` | `True` | Strip inherited message history on subchain entry |
+| `clear_messages` | `True` | Strip inherited message history on subagent entry |
 | `preserve_chat_with_operator` | `True` | Keep operator-facing chat messages when clearing |
 | `reset_iteration` | `True` | Reset iteration counter for the child |
 | `max_iterations` | `None` | Optional hard cap on child iterations |
@@ -47,7 +47,7 @@ class ExtractionOrchestrator(ReactGraph):
 ```mermaid
 sequenceDiagram
     participant Parent
-    participant Policy as SubchainPolicy
+    participant Policy as SubagentPolicy
     participant Child
 
     Parent->>Policy: delegate invoke
@@ -68,7 +68,7 @@ On **exit**, fields listed in `merge_fields` are copied from the child result in
 The IRS reporting example uses the same policy at every stage boundary:
 
 ```python
-ARTIFACT_POLICY = SubchainPolicy(
+ARTIFACT_POLICY = SubagentPolicy(
     clear_messages=True,
     merge_fields=["pipeline_artifact"],
 )

@@ -163,5 +163,5 @@ def reducer_upsert(existing: list, new: list) -> list:
     return result
 
 
-def reduce_subchain_stack(left: list, right: list) -> list:
+def reduce_subagent_stack(left: list, right: list) -> list:
     return right if right is not None else left

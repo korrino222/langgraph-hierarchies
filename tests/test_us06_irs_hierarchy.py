@@ -38,11 +38,11 @@ def test_full_hierarchy_runs_end_to_end() -> None:
     assert result["is_finished"] is True
 
 
-def test_subchain_policy_clears_messages_but_merges_artifact() -> None:
+def test_subagent_policy_clears_messages_but_merges_artifact() -> None:
     evidence = EvidenceOrchestrator(
         state_schema=IRSState,
         context_schema=BaseContext,
-        subchain_policy=ARTIFACT_POLICY,
+        subagent_policy=ARTIFACT_POLICY,
     ).compile_graph()
     fetcher = next(
         child

@@ -8,7 +8,7 @@
 
 An agentic system is **decomposable** when it can be split into finer agentic systems — each developed, run, and evaluated in isolation, with its own context — that still achieve the goal of the whole. [Decomposability in AI workflows](https://medium.com/@ishish222/decomposability-in-ai-workflows-what-it-is-and-why-you-want-it-c12c9a939565) explains why that matters: lean context per unit, benchmarkable seams, durable checkpoints, and improvements that stop colliding across stages.
 
-**langgraph-hierarchies** is the library for building that on LangGraph: recursive hierarchies of **real compiled subgraphs**, with declarative per-subchain context isolation (`SubchainPolicy`), supervisor-controlled iteration budgets, and artifact handoff across boundaries — not one swelling monolith, not ephemeral `task`-tool isolation alone.
+**langgraph-hierarchies** is the library for building that on LangGraph: recursive hierarchies of **real compiled subgraphs**, with declarative per-subagent context isolation (`SubagentPolicy`), supervisor-controlled iteration budgets, and artifact handoff across boundaries — not one swelling monolith, not ephemeral `task`-tool isolation alone.
 
 Flat delegation (supervisor handoffs, Deep Agents) is a good starting point. This library targets the production wall past that: invokable subagents that nest as deep as the problem needs while preserving streamability, durability, and resumability at every level.
 
@@ -16,8 +16,8 @@ Flat delegation (supervisor handoffs, Deep Agents) is a good starting point. Thi
 
 | | [langgraph-supervisor](https://pypi.org/project/langgraph-supervisor/) | [Deep Agents](https://pypi.org/project/deepagents/) | langgraph-hierarchies |
 | --- | --- | --- | --- |
-| Model | Supervisor → workers (handoff tools) | Harness + subagents (`task` / programmatic `task()`) | Class-as-factory graphs, phased compile, `SubchainPolicy` |
-| Context isolation | Shared parent history | Ephemeral subagent context | Declarative clear/merge/discard per subchain boundary |
+| Model | Supervisor → workers (handoff tools) | Harness + subagents (`task` / programmatic `task()`) | Class-as-factory graphs, phased compile, `SubagentPolicy` |
+| Context isolation | Shared parent history | Ephemeral subagent context | Declarative clear/merge/discard per subagent boundary |
 | Nesting | Multi-level supervisors | Fan-out / data recursion (partial); not stateful deep trees | Recursive compiled subgraphs + explicit state policy |
 | Best for | Quick hierarchical routing | General long-horizon agents | Production decomposable hierarchies — benchmarkable units, lean checkpoints |
 
@@ -43,6 +43,10 @@ Regression tests gate version bumps. A pair is listed here only once the full su
 
 CI runs `ruff` and `pytest` on every push/PR (Python 3.10–3.13). Tests use scripted models only — no LLM API keys required.
 
+## What's in 0.0.4
+
+- **Breaking rename** — `SubchainPolicy` → `SubagentPolicy`, `subchain_policy` → `subagent_policy`, `__subchain_stack__` → `__subagent_stack__` (no aliases; update imports and checkpoint state keys)
+
 ## What's in 0.0.3
 
 - **LangSmith threads** — automatic `thread_id` normalization into `RunnableConfig` metadata at invoke time (see below)
@@ -52,7 +56,7 @@ CI runs `ruff` and `pytest` on every push/PR (Python 3.10–3.13). Tests use scr
 The mechanics behind decomposable hierarchies:
 
 - `BaseGraph` / `CompiledGraph` + phased compilation — each unit is a real invokable subgraph
-- `SubchainPolicy` — entry snapshot, clear/merge/discard, exit restore; isolate context at every seam
+- `SubagentPolicy` — entry snapshot, clear/merge/discard, exit restore; isolate context at every seam
 - `ReactGraph` + iteration safety — per-agent limits, supervisor `task_iterations`, forced-exit report
 - Root compile (`compile_as_root`) and unified invocation — stream and checkpoint through the full tree
 - Compatibility harness (per-story pytest markers, CI) — benchmark units in isolation

@@ -16,7 +16,7 @@ from examples.irs_reporting.data import (
     build_final_report,
     build_reconciliation_artifact,
 )
-from langgraph_hierarchies.graphs.compiled import SubchainPolicy
+from langgraph_hierarchies.graphs.compiled import SubagentPolicy
 from langgraph_hierarchies.graphs.react import ReactGraph
 from langgraph_hierarchies.graphs.simple import SimpleGraph
 from langgraph_hierarchies.graphs.todo import TodoGraph
@@ -24,7 +24,7 @@ from langgraph_hierarchies.state.context import BaseContext
 from langgraph_hierarchies.state.reducers import reduce_current_agent_report
 from langgraph_hierarchies.state.schema import BaseState, create_base_state_defaults
 
-ARTIFACT_POLICY = SubchainPolicy(
+ARTIFACT_POLICY = SubagentPolicy(
     clear_messages=True, merge_fields=["pipeline_artifact"]
 )
 
@@ -143,12 +143,12 @@ class EvidenceOrchestrator(ArtifactReactGraph):
         fetcher = DocumentFetcher(
             state_schema=IRSState,
             context_schema=BaseContext,
-            subchain_policy=ARTIFACT_POLICY,
+            subagent_policy=ARTIFACT_POLICY,
         ).compile_graph()
         validator = DocumentValidator(
             state_schema=IRSState,
             context_schema=BaseContext,
-            subchain_policy=ARTIFACT_POLICY,
+            subagent_policy=ARTIFACT_POLICY,
         ).compile_graph()
         return super().compile_graph(
             *args,
@@ -165,7 +165,7 @@ class ExtractionOrchestrator(ArtifactReactGraph):
         ocr = OCREngine(
             state_schema=IRSState,
             context_schema=BaseContext,
-            subchain_policy=ARTIFACT_POLICY,
+            subagent_policy=ARTIFACT_POLICY,
         ).compile_graph()
         return super().compile_graph(*args, compiled_subgraphs=[ocr], **kwargs)
 
@@ -200,7 +200,7 @@ class MatchingOrchestrator(TodoGraph):
         matcher = PositionMatcher(
             state_schema=IRSState,
             context_schema=BaseContext,
-            subchain_policy=ARTIFACT_POLICY,
+            subagent_policy=ARTIFACT_POLICY,
         ).compile_graph()
         return super().compile_graph(
             *args,
@@ -217,7 +217,7 @@ class ReconciliationOrchestrator(ArtifactReactGraph):
         calculator = TaxCalculator(
             state_schema=IRSState,
             context_schema=BaseContext,
-            subchain_policy=ARTIFACT_POLICY,
+            subagent_policy=ARTIFACT_POLICY,
         ).compile_graph()
         return super().compile_graph(
             *args,
@@ -244,27 +244,27 @@ class IRSReportingRoot(TodoGraph):
         reporting = ReportingOrchestrator(
             state_schema=IRSState,
             context_schema=BaseContext,
-            subchain_policy=ARTIFACT_POLICY,
+            subagent_policy=ARTIFACT_POLICY,
         ).compile_graph()
         evidence = EvidenceOrchestrator(
             state_schema=IRSState,
             context_schema=BaseContext,
-            subchain_policy=ARTIFACT_POLICY,
+            subagent_policy=ARTIFACT_POLICY,
         ).compile_graph()
         extraction = ExtractionOrchestrator(
             state_schema=IRSState,
             context_schema=BaseContext,
-            subchain_policy=ARTIFACT_POLICY,
+            subagent_policy=ARTIFACT_POLICY,
         ).compile_graph()
         matching = MatchingOrchestrator(
             state_schema=IRSState,
             context_schema=BaseContext,
-            subchain_policy=ARTIFACT_POLICY,
+            subagent_policy=ARTIFACT_POLICY,
         ).compile_graph(num_positions=num_positions)
         reconciliation = ReconciliationOrchestrator(
             state_schema=IRSState,
             context_schema=BaseContext,
-            subchain_policy=ARTIFACT_POLICY,
+            subagent_policy=ARTIFACT_POLICY,
         ).compile_graph()
         return super().compile_graph(
             *args,

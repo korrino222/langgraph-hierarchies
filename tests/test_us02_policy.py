@@ -1,9 +1,9 @@
-"""US-02 SubchainPolicy entry/exit isolation tests."""
+"""US-02 SubagentPolicy entry/exit isolation tests."""
 
 import pytest
 from langchain_core.messages import AIMessage, HumanMessage
 
-from langgraph_hierarchies.graphs.compiled import SubchainPolicy
+from langgraph_hierarchies.graphs.compiled import SubagentPolicy
 from langgraph_hierarchies.graphs.simple import SimpleGraph
 from langgraph_hierarchies.state.schema import BaseState, create_base_state_defaults
 from langgraph_hierarchies.types import Progress
@@ -13,25 +13,25 @@ pytestmark = pytest.mark.us02
 
 class PolicyTestGraph(SimpleGraph):
     name = "policy_test"
-    description = "Subchain policy test graph"
+    description = "Subagent policy test graph"
 
 
-def _compile_with_policy(policy: SubchainPolicy | None = None):
+def _compile_with_policy(policy: SubagentPolicy | None = None):
     graph = PolicyTestGraph(
         state_schema=BaseState,
-        subchain_policy=policy,
+        subagent_policy=policy,
     )
     return graph.compile_graph()
 
 
-def test_entry_pushes_snapshot_onto_subchain_stack() -> None:
-    compiled = _compile_with_policy(SubchainPolicy())
+def test_entry_pushes_snapshot_onto_subagent_stack() -> None:
+    compiled = _compile_with_policy(SubagentPolicy())
     state = create_base_state_defaults()
     state["messages"] = [HumanMessage(content="parent msg")]
 
     compiled.entry_hook(state)
 
-    stack = state["__subchain_stack__"]
+    stack = state["__subagent_stack__"]
     assert len(stack) == 1
     assert stack[0]["agent_name"] == "policy_test"
     assert stack[0]["saved_state"]["messages"][0].content == "parent msg"
@@ -39,7 +39,7 @@ def test_entry_pushes_snapshot_onto_subchain_stack() -> None:
 
 
 def test_entry_clears_messages_todo_lists_and_iteration() -> None:
-    compiled = _compile_with_policy(SubchainPolicy())
+    compiled = _compile_with_policy(SubagentPolicy())
     state = create_base_state_defaults()
     state["messages"] = [HumanMessage(content="parent msg")]
     state["todo_lists"] = {"planner": {"task": False}}
@@ -53,7 +53,7 @@ def test_entry_clears_messages_todo_lists_and_iteration() -> None:
 
 
 def test_entry_respects_clear_messages_false() -> None:
-    compiled = _compile_with_policy(SubchainPolicy(clear_messages=False))
+    compiled = _compile_with_policy(SubagentPolicy(clear_messages=False))
     state = create_base_state_defaults()
     state["messages"] = [HumanMessage(content="keep me")]
 
@@ -64,7 +64,7 @@ def test_entry_respects_clear_messages_false() -> None:
 
 
 def test_entry_respects_reset_iteration_false() -> None:
-    compiled = _compile_with_policy(SubchainPolicy(reset_iteration=False))
+    compiled = _compile_with_policy(SubagentPolicy(reset_iteration=False))
     state = create_base_state_defaults()
     state["iteration_number"] = 12
 
@@ -75,7 +75,7 @@ def test_entry_respects_reset_iteration_false() -> None:
 
 def test_entry_clears_operator_chat_when_disabled() -> None:
     compiled = _compile_with_policy(
-        SubchainPolicy(preserve_chat_with_operator=False),
+        SubagentPolicy(preserve_chat_with_operator=False),
     )
     state = create_base_state_defaults()
     state["chat_with_operator"] = [HumanMessage(content="operator msg")]
@@ -86,7 +86,7 @@ def test_entry_clears_operator_chat_when_disabled() -> None:
 
 
 def test_entry_preserves_operator_chat_by_default() -> None:
-    compiled = _compile_with_policy(SubchainPolicy())
+    compiled = _compile_with_policy(SubagentPolicy())
     state = create_base_state_defaults()
     state["chat_with_operator"] = [HumanMessage(content="operator msg")]
 
@@ -96,7 +96,7 @@ def test_entry_preserves_operator_chat_by_default() -> None:
 
 
 def test_entry_overrides_max_iterations() -> None:
-    compiled = _compile_with_policy(SubchainPolicy(max_iterations=10))
+    compiled = _compile_with_policy(SubagentPolicy(max_iterations=10))
     state = create_base_state_defaults()
     state["max_iterations"] = 100
 
@@ -107,7 +107,7 @@ def test_entry_overrides_max_iterations() -> None:
 
 def test_exit_restores_parent_and_merges_fields() -> None:
     compiled = _compile_with_policy(
-        SubchainPolicy(merge_fields=["todo_list"]),
+        SubagentPolicy(merge_fields=["todo_list"]),
     )
     state = create_base_state_defaults()
     state["messages"] = [HumanMessage(content="parent msg")]
@@ -127,7 +127,7 @@ def test_exit_restores_parent_and_merges_fields() -> None:
 
 
 def test_exit_propagates_progress_and_report_as_infrastructure() -> None:
-    compiled = _compile_with_policy(SubchainPolicy(merge_fields=[]))
+    compiled = _compile_with_policy(SubagentPolicy(merge_fields=[]))
     state = create_base_state_defaults()
     state["current_agent_report"] = "parent report"
     state["progress"] = {"overall": Progress(scheduled_executions=1)}
@@ -148,7 +148,7 @@ def test_exit_propagates_progress_and_report_as_infrastructure() -> None:
 
 def test_exit_drops_discard_fields() -> None:
     compiled = _compile_with_policy(
-        SubchainPolicy(discard_fields=["current_agent_report"])
+        SubagentPolicy(discard_fields=["current_agent_report"])
     )
     state = create_base_state_defaults()
     state["current_agent_report"] = "should be discarded"
@@ -160,7 +160,7 @@ def test_exit_drops_discard_fields() -> None:
 
 
 def test_round_trip_restores_parent_state_and_clears_stack() -> None:
-    compiled = _compile_with_policy(SubchainPolicy(merge_fields=["todo_list"]))
+    compiled = _compile_with_policy(SubagentPolicy(merge_fields=["todo_list"]))
     state = create_base_state_defaults()
     state["messages"] = [HumanMessage(content="parent msg")]
     state["todo_list"] = {"parent": False}
@@ -173,7 +173,7 @@ def test_round_trip_restores_parent_state_and_clears_stack() -> None:
 
     assert result["messages"][0].content == "parent msg"
     assert result["todo_list"] == {"child": True}
-    assert result["__subchain_stack__"] == []
+    assert result["__subagent_stack__"] == []
 
 
 def test_no_policy_passthrough() -> None:
@@ -188,4 +188,4 @@ def test_no_policy_passthrough() -> None:
     assert len(result["messages"]) == 1
     assert result["iteration_number"] == 5
     assert result["todo_lists"] == {"planner": {"task": False}}
-    assert result.get("__subchain_stack__", []) == []
+    assert result.get("__subagent_stack__", []) == []

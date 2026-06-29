@@ -1,4 +1,4 @@
-"""Compiled graph wrapper and subchain policy."""
+"""Compiled graph wrapper and subagent policy."""
 
 from __future__ import annotations
 
@@ -38,8 +38,8 @@ from langgraph_hierarchies.tracing.config import (
 
 
 @dataclass
-class SubchainPolicy:
-    """Declarative subchain entry/exit policy (semantics applied in US-02)."""
+class SubagentPolicy:
+    """Declarative subagent entry/exit policy (semantics applied in US-02)."""
 
     clear_messages: bool = True
     preserve_chat_with_operator: bool = True
@@ -61,7 +61,7 @@ class CompiledGraph(Runnable):
     runnable: Runnable
     compiled_subgraphs: list[CompiledGraph]
     as_tool: bool
-    subchain_policy: SubchainPolicy | None
+    subagent_policy: SubagentPolicy | None
     _root_state_defaults: dict | None
 
     def __init__(
@@ -74,7 +74,7 @@ class CompiledGraph(Runnable):
         compiled: CompiledStateGraph,
         compiled_subgraphs: list[CompiledGraph] | None = None,
         as_tool: bool = True,
-        subchain_policy: SubchainPolicy | None = None,
+        subagent_policy: SubagentPolicy | None = None,
     ) -> None:
         super().__init__()
         self.name = name
@@ -85,7 +85,7 @@ class CompiledGraph(Runnable):
         self._compiled.name = name
         self.compiled_subgraphs = compiled_subgraphs or []
         self.as_tool = as_tool
-        self.subchain_policy = subchain_policy
+        self.subagent_policy = subagent_policy
         self._root_state_defaults = None
 
         suffix = "".join(random.choices(string.ascii_letters + string.digits, k=10))
@@ -398,15 +398,15 @@ class CompiledGraph(Runnable):
         return state
 
     def _snapshot_parent_state(self, state: dict) -> None:
-        snapshot = {k: v for k, v in state.items() if k != "__subchain_stack__"}
+        snapshot = {k: v for k, v in state.items() if k != "__subagent_stack__"}
         snapshot = copy.deepcopy(snapshot)
-        stack = state.setdefault("__subchain_stack__", [])
+        stack = state.setdefault("__subagent_stack__", [])
         stack.append({"agent_name": self.name, "saved_state": snapshot})
         if "progress" not in state:
             state["progress"] = {}
 
     def _apply_entry_policy(self, state: dict) -> None:
-        policy = self.subchain_policy
+        policy = self.subagent_policy
         if policy is None:
             return
 
@@ -425,8 +425,8 @@ class CompiledGraph(Runnable):
             state["chat_with_operator"] = []
 
     def _apply_exit_policy(self, state: dict) -> dict:
-        policy = self.subchain_policy
-        stack = state.get("__subchain_stack__", [])
+        policy = self.subagent_policy
+        stack = state.get("__subagent_stack__", [])
         if policy is None or not stack:
             return state
 
@@ -445,7 +445,7 @@ class CompiledGraph(Runnable):
         for field_name in policy.discard_fields:
             saved.pop(field_name, None)
 
-        saved["__subchain_stack__"] = stack
+        saved["__subagent_stack__"] = stack
         return saved
 
     def entry_hook(
@@ -453,7 +453,7 @@ class CompiledGraph(Runnable):
         state: dict,
         config: RunnableConfig | None = None,
     ) -> dict:
-        if self.subchain_policy is not None:
+        if self.subagent_policy is not None:
             self._snapshot_parent_state(state)
             state = self.graph.entry_hook(self, state, config)
             self._apply_entry_policy(state)
@@ -466,7 +466,7 @@ class CompiledGraph(Runnable):
         state: dict,
         config: RunnableConfig | None = None,
     ) -> dict:
-        if self.subchain_policy is not None:
+        if self.subagent_policy is not None:
             self._snapshot_parent_state(state)
             state = await self.graph.aentry_hook(self, state, config)
             self._apply_entry_policy(state)

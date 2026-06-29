@@ -10,7 +10,7 @@ from langgraph_hierarchies.graphs import (
     CompiledGraph,
     ReactGraph,
     SimpleGraph,
-    SubchainPolicy,
+    SubagentPolicy,
     TodoGraph,
 )
 from langgraph_hierarchies.state import (
@@ -33,7 +33,7 @@ from langgraph_hierarchies.tracing import (
 )
 from langgraph_hierarchies.types import Progress
 
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 
 __all__ = [
     "AgentStuckError",
@@ -48,7 +48,7 @@ __all__ = [
     "Progress",
     "ReactGraph",
     "SimpleGraph",
-    "SubchainPolicy",
+    "SubagentPolicy",
     "TodoGraph",
     "__version__",
     "create_base_state_defaults",

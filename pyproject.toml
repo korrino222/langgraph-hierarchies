@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "langgraph-hierarchies"
-version = "0.0.3"
+version = "0.0.4"
 description = "LangGraph abstractions for hierarchical multi-agent systems"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -70,7 +70,7 @@ pythonpath = ["."]
 addopts = "--strict-markers --strict-config"
 markers = [
     "us01: US-01 foundational layer regression tests",
-    "us02: US-02 subchain state isolation regression tests",
+    "us02: US-02 subagent state isolation regression tests",
     "us03: US-03 iteration budget enforcement regression tests",
     "us04: US-04 root compile and unified invocation regression tests",
     "us05: US-05 LangGraph compatibility harness meta-tests",

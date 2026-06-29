@@ -15,7 +15,7 @@ from langgraph_hierarchies.state.reducers import (
     reduce_iteration_number,
     reduce_messages,
     reduce_progress,
-    reduce_subchain_stack,
+    reduce_subagent_stack,
     reduce_todo_list,
     reduce_todo_lists,
 )
@@ -38,7 +38,7 @@ class BaseState(TypedDict):
     iteration_number: Annotated[int, reduce_iteration_number]
     max_iterations: Annotated[int, reduce_iteration_number]
     file_refs: Annotated[list, reduce_file_refs]
-    __subchain_stack__: Annotated[list, reduce_subchain_stack]
+    __subagent_stack__: Annotated[list, reduce_subagent_stack]
     remaining_steps: RemainingSteps
 
 
@@ -58,5 +58,5 @@ def create_base_state_defaults() -> dict:
         "iteration_number": 0,
         "max_iterations": 40,
         "file_refs": [],
-        "__subchain_stack__": [],
+        "__subagent_stack__": [],
     }

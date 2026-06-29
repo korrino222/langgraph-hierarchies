@@ -9,7 +9,7 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.graph import StateGraph
 from pydantic import BaseModel
 
-from langgraph_hierarchies.graphs.compiled import CompiledGraph, SubchainPolicy
+from langgraph_hierarchies.graphs.compiled import CompiledGraph, SubagentPolicy
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ class BaseGraph(StateGraph):
         config: RunnableConfig | None = None,
         args_schema: type[BaseModel] = BaseGraphArgsSchema,
         include_in_progress=_UNSET,
-        subchain_policy: SubchainPolicy | None = None,
+        subagent_policy: SubagentPolicy | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(state_schema=state_schema, graph_id=self.name, **kwargs)
@@ -43,7 +43,7 @@ class BaseGraph(StateGraph):
         self.args_schema = args_schema
         if include_in_progress is not self._UNSET:
             self.include_in_progress = include_in_progress
-        self.subchain_policy = subchain_policy
+        self.subagent_policy = subagent_policy
         self.compiled_subgraphs: list[CompiledGraph] = []
         self._enable_interrupts = False
 
@@ -109,7 +109,7 @@ class BaseGraph(StateGraph):
             graph=self,
             compiled=graph_compiled,
             compiled_subgraphs=getattr(self, "compiled_subgraphs", []),
-            subchain_policy=self.subchain_policy,
+            subagent_policy=self.subagent_policy,
         )
 
     def entry_hook(
