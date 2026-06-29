@@ -11,7 +11,6 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage
 from langchain_core.outputs import ChatGeneration, ChatResult
 from langchain_core.runnables import RunnableConfig
-from langgraph._internal._runnable import RunnableSeq
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.pregel._utils import find_subgraph_pregel
 from langgraph.types import Command
@@ -263,18 +262,25 @@ def test_command_invoke_bypasses_entry_hooks() -> None:
             inner_invoke.assert_called_once()
 
 
-def test_compiled_graph_is_runnable_seq_subclass() -> None:
+def test_subgraph_node_bound_is_compiled_graph_wrapper() -> None:
+    parent = ParentGraph(
+        state_schema=BaseState,
+        context_schema=BaseContext,
+        reports_to_supervisor=False,
+    )
+    root = parent.compile_graph()
+    worker = root.compiled_subgraphs[0]
+    pregel_node = root._compiled.nodes[worker.node_label]
+
+    assert isinstance(pregel_node.bound, CompiledGraph)
+    assert pregel_node.bound is worker
+
+
+def test_find_subgraph_pregel_discovers_inner_pregel_via_runnable() -> None:
     graph = ReportReactGraph(state_schema=BaseState, context_schema=BaseContext)
     compiled = graph.compile_graph()
 
-    assert isinstance(compiled, RunnableSeq)
-
-
-def test_find_subgraph_pregel_discovers_inner_pregel() -> None:
-    graph = ReportReactGraph(state_schema=BaseState, context_schema=BaseContext)
-    compiled = graph.compile_graph()
-
-    discovered = find_subgraph_pregel(compiled)
+    discovered = find_subgraph_pregel(compiled.runnable)
 
     assert discovered is compiled._compiled
 

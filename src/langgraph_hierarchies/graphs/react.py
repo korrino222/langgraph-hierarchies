@@ -373,11 +373,11 @@ class ReactGraph(BaseGraph):
         self.add_edge(self.current_back, "final_back")
 
     def _merge_subgraph_as_tool(self, subgraph: CompiledGraph) -> None:
-        self.add_node(subgraph.node_label, subgraph.runnable)
+        self.add_node(subgraph.node_label, subgraph)
         self.add_edge(subgraph.node_label, "reasoning")
 
         graph_tool = convert_runnable_to_tool(
-            subgraph.runnable,
+            subgraph,
             name=subgraph.name,
             description=subgraph.description,
             args_schema=subgraph.args_schema,
@@ -388,13 +388,13 @@ class ReactGraph(BaseGraph):
     def _merge_front_compiled_subgraphs(self) -> None:
         self.current_front = "system"
         for subgraph in reversed(self.compiled_subgraphs_front):
-            self.add_node(subgraph.node_label, subgraph.runnable)
+            self.add_node(subgraph.node_label, subgraph)
             self.add_edge(subgraph.node_label, self.current_front)
             self.current_front = subgraph.node_label
 
     def _merge_back_compiled_subgraphs(self) -> None:
         self.current_back = "empty_back"
         for subgraph in self.compiled_subgraphs_back:
-            self.add_node(subgraph.node_label, subgraph.runnable)
+            self.add_node(subgraph.node_label, subgraph)
             self.add_edge(self.current_back, subgraph.node_label)
             self.current_back = subgraph.node_label

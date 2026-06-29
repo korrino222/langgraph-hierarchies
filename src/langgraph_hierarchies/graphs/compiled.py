@@ -122,12 +122,13 @@ class CompiledGraph(Runnable):
 
     @property
     def steps(self) -> list:
-        """Expose the inner hook pipeline for LangGraph subgraph discovery.
+        """Expose the hook pipeline steps for ``find_subgraph_pregel`` traversal.
 
-        ``find_subgraph_pregel`` traverses ``RunnableSeq.steps`` to locate the
-        embedded ``Pregel``. Returning the full pipeline steps (not just the
-        bare compiled graph) ensures that when LangGraph flattens this node it
-        keeps every hook in the executed sequence.
+        Call ``find_subgraph_pregel(compiled.runnable)`` (or pass the wrapper's
+        ``runnable``) to locate the embedded inner ``Pregel``. The wrapper
+        itself must **not** be registered as a virtual ``RunnableSeq`` subclass:
+        if it were, LangGraph would flatten the node into individual hook steps
+        and detach the inner graph from the trace tree (see DD-10).
         """
         inner = self.runnable
         if isinstance(inner, (RunnableSequence, RunnableSeq)):
@@ -505,6 +506,3 @@ class CompiledGraph(Runnable):
             )
             state["messages"] = state.get("messages", []) + [tool_message]
         return state
-
-
-RunnableSeq.register(CompiledGraph)
