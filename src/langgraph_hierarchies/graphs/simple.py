@@ -12,7 +12,7 @@ class SimpleGraph(BaseGraph):
     def computation_node(
         self,
         state: dict,
-        config: RunnableConfig | None = None,
+        config: RunnableConfig,
     ) -> dict:
         """Override to implement deterministic computation."""
         return state

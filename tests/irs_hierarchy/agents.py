@@ -69,7 +69,7 @@ class DocumentFetcher(SimpleGraph):
     description = "Fetch source documents for the evidence stage"
 
     def computation_node(
-        self, state: dict, config: RunnableConfig | None = None
+        self, state: dict, config: RunnableConfig
     ) -> dict:
         doc_ids = ", ".join(document["id"] for document in SOURCE_DOCUMENTS)
         artifact = f"FETCHED:documents=[{doc_ids}]"
@@ -89,7 +89,7 @@ class OCREngine(SimpleGraph):
     description = "Run OCR over validated documents"
 
     def computation_node(
-        self, state: dict, config: RunnableConfig | None = None
+        self, state: dict, config: RunnableConfig
     ) -> dict:
         prior = _artifact_from_state(state)
         artifact = build_extraction_artifact(prior or build_evidence_artifact())
@@ -109,7 +109,7 @@ class TaxCalculator(SimpleGraph):
     description = "Calculate tax due from matched positions"
 
     def computation_node(
-        self, state: dict, config: RunnableConfig | None = None
+        self, state: dict, config: RunnableConfig
     ) -> dict:
         prior = _artifact_from_state(state)
         artifact = build_reconciliation_artifact(prior)
@@ -124,7 +124,7 @@ class ReportingOrchestrator(SimpleGraph):
     description = "Emit the final IRS filing report"
 
     def computation_node(
-        self, state: dict, config: RunnableConfig | None = None
+        self, state: dict, config: RunnableConfig
     ) -> dict:
         prior = _artifact_from_state(state)
         report = build_final_report(prior)
