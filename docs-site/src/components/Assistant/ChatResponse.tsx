@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { cn, Icon } from '@mintlify/components';
 import type { UIMessage } from '@ai-sdk/react';
+import { withBase } from '../../utils/withBase';
 
 interface ChatResponseProps extends React.HTMLAttributes<HTMLDivElement> {
   message: UIMessage;
@@ -12,13 +13,13 @@ interface ChatResponseProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const normalizePath = (path: string | undefined): string => {
-  if (!path) return '/';
+  if (!path) return withBase('/');
 
   let normalized = path.startsWith('/') ? path : `/${path}`;
   if (normalized.endsWith('index')) {
     normalized = normalized.replace('index', '');
   }
-  return normalized;
+  return withBase(normalized);
 };
 
 const isLocalUrl = (url: string | undefined): boolean => {

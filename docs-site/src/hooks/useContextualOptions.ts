@@ -6,6 +6,7 @@ import {
   ClaudeIcon,
   PerplexityIcon,
 } from '../icons/ContextMenuIcons';
+import { withBase } from '../utils/withBase';
 
 export type ContextualOptionItem = {
   id: string;
@@ -39,7 +40,9 @@ export function useContextualOptions({
   pathname: string;
   options?: string[];
 }) {
-  const markdownUrl = `${pathname}.md`;
+  const markdownUrl = withBase(
+    pathname === '/' ? '/index.md' : `${pathname}.md`,
+  );
 
   const allOptions: ContextualOptionItem[] = useMemo(
     () => [

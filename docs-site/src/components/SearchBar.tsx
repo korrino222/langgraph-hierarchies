@@ -9,6 +9,7 @@ import {
 import { navigate } from 'astro:transitions/client';
 import { useDebouncedCallback } from 'use-debounce';
 import { type DecoratedNavigationPage } from '@mintlify/models';
+import { withBase } from '../utils/withBase';
 
 const SEARCH_OPEN_EVENT = 'open-search';
 
@@ -32,13 +33,13 @@ const SUBDOMAIN = import.meta.env.PUBLIC_MINTLIFY_SUBDOMAIN;
 const API_KEY = import.meta.env.PUBLIC_MINTLIFY_ASSISTANT_KEY;
 
 const normalizePath = (path: string | undefined): string => {
-  if (!path) return '/';
+  if (!path) return withBase('/');
 
   let normalized = path.startsWith('/') ? path : `/${path}`;
   if (normalized.endsWith('index')) {
     normalized = normalized.replace('index', '');
   }
-  return normalized;
+  return withBase(normalized);
 };
 
 const SEARCH_HISTORY_KEY = 'mintlify-search-history';
