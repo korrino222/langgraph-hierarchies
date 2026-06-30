@@ -43,6 +43,10 @@ Regression tests gate version bumps. A pair is listed here only once the full su
 
 CI runs `ruff` and `pytest` on every push/PR (Python 3.10–3.13). Tests use scripted models only — no LLM API keys required.
 
+## What's in 0.0.7
+
+- **computation_node config annotation** — fix `UserWarning` emitted by LangGraph when `SimpleGraph` subclasses use `from __future__ import annotations`; `config` is now typed as `RunnableConfig` (always provided at runtime)
+
 ## What's in 0.0.6
 
 - **Managed state in Send payloads** — `ReactGraph` strips LangGraph-managed channels (e.g. `remaining_steps`) from `Send` state to avoid pregel warnings
