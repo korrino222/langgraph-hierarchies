@@ -36,6 +36,13 @@ _THRESHOLD_ALLOWED_TOOLS = frozenset(
     {"report_to_supervisor", "finish_task", "raise_exception"}
 )
 
+_MANAGED_STATE_FIELDS: frozenset[str] = frozenset({"remaining_steps"})
+
+
+def _send_state(state: dict, **overrides: Any) -> dict:
+    """Build a state dict suitable for Send, excluding LangGraph managed fields."""
+    return {k: v for k, v in state.items() if k not in _MANAGED_STATE_FIELDS} | overrides
+
 
 class ReactArgsSchema(BaseModel):
     task: str = Field(
@@ -255,8 +262,7 @@ class ReactGraph(BaseGraph):
                 send_state["messages"] = isolated_messages
                 sends.append(result)
             else:
-                single_tool_state = {**state, "messages": isolated_messages}
-                sends.append(Send("tool", single_tool_state))
+                sends.append(Send("tool", _send_state(state, messages=isolated_messages)))
 
         return sends
 
@@ -272,11 +278,11 @@ class ReactGraph(BaseGraph):
             if call_name == subgraph.name:
                 return Send(
                     subgraph.node_label,
-                    {
-                        **state,
-                        "current_agent_args": tool_call["args"],
-                        "current_tool_call": tool_call,
-                    },
+                    _send_state(
+                        state,
+                        current_agent_args=tool_call["args"],
+                        current_tool_call=tool_call,
+                    ),
                 )
 
         if call_name == "raise_exception":
@@ -294,18 +300,18 @@ class ReactGraph(BaseGraph):
             content = tool_call["args"].get("report", "")
             if not content:
                 return None
-            return Send("empty_back", {**state, "current_agent_report": content})
+            return Send("empty_back", _send_state(state, current_agent_report=content))
 
         if call_name == "finish_task":
             if len(reasoning_result.tool_calls) > 1:
                 return "invalid_call_report_to_supervisor"
             return Send(
                 "empty_back",
-                {
-                    **state,
-                    "current_agent_report": tool_call["args"]["result"],
-                    "is_finished": True,
-                },
+                _send_state(
+                    state,
+                    current_agent_report=tool_call["args"]["result"],
+                    is_finished=True,
+                ),
             )
 
         return None
