@@ -41,7 +41,9 @@ _MANAGED_STATE_FIELDS: frozenset[str] = frozenset({"remaining_steps"})
 
 def _send_state(state: dict, **overrides: Any) -> dict:
     """Build a state dict suitable for Send, excluding LangGraph managed fields."""
-    return {k: v for k, v in state.items() if k not in _MANAGED_STATE_FIELDS} | overrides
+    return {
+        k: v for k, v in state.items() if k not in _MANAGED_STATE_FIELDS
+    } | overrides
 
 
 class ReactArgsSchema(BaseModel):
@@ -262,7 +264,9 @@ class ReactGraph(BaseGraph):
                 send_state["messages"] = isolated_messages
                 sends.append(result)
             else:
-                sends.append(Send("tool", _send_state(state, messages=isolated_messages)))
+                sends.append(
+                    Send("tool", _send_state(state, messages=isolated_messages))
+                )
 
         return sends
 
