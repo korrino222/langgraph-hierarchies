@@ -43,6 +43,10 @@ Regression tests gate version bumps. A pair is listed here only once the full su
 
 CI runs `ruff` and `pytest` on every push/PR (Python 3.10–3.13). Tests use scripted models only — no LLM API keys required.
 
+## What's in 0.0.8
+
+- **Lean sdist** — exclude `docs-site/`, `docs/`, `tests/`, and config dirs from the source distribution; sdist drops from 55 MB to ~120 KB
+
 ## What's in 0.0.7
 
 - **computation_node config annotation** — fix `UserWarning` emitted by LangGraph when `SimpleGraph` subclasses use `from __future__ import annotations`; `config` is now typed as `RunnableConfig` (always provided at runtime)
