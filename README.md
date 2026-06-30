@@ -38,10 +38,24 @@ Regression tests gate version bumps. A pair is listed here only once the full su
 1. Update the `langgraph` constraint in `pyproject.toml`.
 2. Refresh the lockfile: `uv sync`.
 3. Run the full suite: `uv run pytest`.
-4. To isolate a failing story, run e.g. `uv run pytest -m us04`.
-5. When the suite is green, update the compatibility matrix above and cut a release.
+4. To isolate a failing story, run e.g. `uv run pytest -m us04` (see test markers below).
+5. When the suite is green, update the compatibility matrix above, the [docs compatibility page](docs/compatibility.mdx), and cut a release.
 
 CI runs `ruff` and `pytest` on every push/PR (Python 3.10–3.13). Tests use scripted models only — no LLM API keys required.
+
+### Test markers
+
+Stories map to pytest markers for targeted regression:
+
+| Marker | Scope |
+| --- | --- |
+| `us01` | Foundational layer |
+| `us02` | Subagent state isolation |
+| `us03` | Iteration budget enforcement |
+| `us04` | Root compile and unified invocation |
+| `us05` | LangGraph compatibility harness |
+| `us06` | IRS multi-stage hierarchy |
+| `us07` | Responsibility boundary violations |
 
 ## What's in 0.0.8
 

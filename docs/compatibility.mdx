@@ -1,7 +1,7 @@
 ---
 title: Compatibility
 sidebarTitle: Compatibility
-description: LangGraph version matrix and procedure for bumping the pinned runtime version.
+description: Supported LangGraph version pairs for langgraph-hierarchies.
 ---
 
 Regression tests gate version bumps. A compatibility pair is listed here only once the full test suite is green for it.
@@ -12,54 +12,8 @@ Regression tests gate version bumps. A compatibility pair is listed here only on
 | --- | --- |
 | 0.0.x | 1.2.6 (pinned; see [releases](https://github.com/korrino222/langgraph-hierarchies/releases)) |
 
-The constraint in `pyproject.toml` is `langgraph>=1.2.6,<2.0.0`. CI runs against Python 3.10–3.13 on every push and pull request.
-
-## Bumping the langgraph pin
-
-When a new LangGraph release needs support:
-
-<Steps>
-  <Step title="Update the constraint">
-    Edit the `langgraph` version constraint in `pyproject.toml`.
-  </Step>
-
-  <Step title="Refresh the lockfile">
-    ```bash
-    uv sync
-    ```
-  </Step>
-
-  <Step title="Run the full suite">
-    ```bash
-    uv run pytest
-    ```
-
-    To isolate a failing story:
-
-    ```bash
-    uv run pytest -m us04
-    ```
-  </Step>
-
-  <Step title="Update this matrix and release">
-    When the suite is green, update the compatibility table above and cut a release. A pair is only "supported" once the regression suite passes and the matrix is updated — no silent version drift.
-  </Step>
-</Steps>
-
-## Test markers
-
-Stories map to pytest markers for targeted regression:
-
-| Marker | Scope |
-| --- | --- |
-| `us01` | Foundational layer |
-| `us02` | Subagent state isolation |
-| `us03` | Iteration budget enforcement |
-| `us04` | Root compile and unified invocation |
-| `us05` | LangGraph compatibility harness |
-| `us06` | IRS multi-stage hierarchy |
-| `us07` | Responsibility boundary violations |
+The constraint in `pyproject.toml` is `langgraph>=1.2.6,<2.0.0`.
 
 ## CI
 
-The library CI runs `ruff` and `pytest` on every push/PR. Tests use scripted models only — no LLM API keys required.
+The library CI runs `ruff` and `pytest` on every push/PR (Python 3.10–3.13). Tests use scripted models only — no LLM API keys required.

@@ -25,19 +25,19 @@ orchestrator = OrchestratorAgent(
 | --- | --- | --- |
 | `messages` | merge by message ID | Conversation history for the current agent |
 | `todo_list` | dict merge | Active TODO items for the current agent |
-| `todo_lists` | named dict merge | Named TODO lists (batch processing) |
-| `chat_with_operator` | merge by message ID | Operator-facing chat, preserved across subagent boundaries |
+| `todo_lists` | named dict merge | *(reserved — no nodes in this release read or write this field)* |
+| `chat_with_operator` | merge by message ID | *(reserved — no nodes in this release read or write this field)* |
 | `current_agent_args` | last-write wins | Task args passed when a subagent is invoked |
 | `current_agent_report` | last-write wins | Report written by an agent before returning to its supervisor |
 | `current_tool_call` | last-write wins | Tool call that triggered a subagent invocation |
 | `is_finished` | logical OR | Root task completed (`finish_task`) |
-| `is_cancelled` | logical OR | Run cancelled |
+| `is_cancelled` | logical OR | *(reserved — no nodes in this release read or write this field)* |
 | `progress` | highest counts win | Per-agent execution counters |
 | `iteration_number` | last-write wins | Current ReAct iteration |
 | `max_iterations` | last-write wins | Iteration budget for the current agent |
-| `file_refs` | merge by ID | File references passed between stages |
+| `file_refs` | merge by ID | *(reserved — no nodes in this release read or write this field)* |
 | `__subagent_stack__` | last-write wins | Stack of parent state snapshots during nested invocation |
-| `remaining_steps` | *(managed)* | LangGraph recursion budget — see below |
+| `remaining_steps` | *(managed)* | LangGraph global recursion budget — see below |
 
 <AccordionGroup>
   <Accordion title="Message reducer behavior">
@@ -67,11 +67,29 @@ result = root.invoke(
 )
 ```
 
+Pass [`RunnableConfig`](https://python.langchain.com/api_reference/core/runnables/langchain_core.runnables.config.RunnableConfig.html) at invocation time to set LangGraph's global `recursion_limit` (see **LangGraph recursion budget** below).
+
 When compiled with `compile_as_root()`, the wrapper's `after_entry_hook` fills any missing keys from `state_defaults` before the first node runs.
 
-## RemainingSteps — managed channel
+## Iteration budget (`max_iterations`)
 
-`remaining_steps` is annotated with LangGraph's `RemainingSteps` managed value:
+Each ReAct agent tracks how many reasoning steps it has taken via `iteration_number` and enforces a per-agent cap via `max_iterations`. This is the iteration budget you typically configure.
+
+Set the cap when constructing a `ReactGraph`:
+
+```python
+agent = ReactGraph(
+    name="researcher",
+    max_iterations=20,
+    ...
+)
+```
+
+`SubagentPolicy.max_iterations` can override the cap when a subagent is invoked. Each compiled subgraph maintains its **own** independent `iteration_number` / `max_iterations` pair — a parent and child do not share a single ReAct iteration counter at the state level.
+
+## LangGraph recursion budget (`remaining_steps`)
+
+`remaining_steps` is annotated with LangGraph's [`RemainingSteps`](https://langchain-ai.github.io/langgraph/concepts/low_level/#managed-values) managed value:
 
 ```python
 from langgraph.managed import RemainingSteps
@@ -81,9 +99,9 @@ class BaseState(TypedDict):
     remaining_steps: RemainingSteps
 ```
 
-LangGraph owns this channel. It is populated from `recursion_limit` in the run config and decremented each step. You may **read** it inside nodes or routing functions to detect an approaching limit, but you must **never** include it in node return values or `Send` payloads — LangGraph will log a warning and ignore the write.
+LangGraph owns this channel. It is populated from `recursion_limit` in [`RunnableConfig`](https://python.langchain.com/api_reference/core/runnables/langchain_core.runnables.config.RunnableConfig.html) and decremented on **every node execution** across the graph — not just ReAct reasoning steps. You may **read** it inside nodes or routing functions to detect an approaching limit, but you must **never** include it in node return values or `Send` payloads — LangGraph will log a warning and ignore the write.
 
-Each compiled subgraph maintains its **own** independent `remaining_steps` counter. A parent and child do not share a single recursion budget at the state level; use `max_iterations` on `ReactGraph` for per-agent iteration limits instead.
+Each compiled subgraph maintains its **own** independent `remaining_steps` counter. Tune per-agent reasoning limits with `max_iterations`; use `recursion_limit` only as a global safety net for total node executions.
 
 ## Runtime context (separate from state)
 
