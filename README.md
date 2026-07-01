@@ -132,7 +132,15 @@ Uses [uv](https://docs.astral.sh/uv/) (same toolchain as upstream LangGraph):
 ```bash
 uv sync
 uv run pytest
+uv run pre-commit install   # optional: auto-run ruff before each commit
 uv build   # sdist + wheel for PyPI
+```
+
+Lint/format (also enforced in CI):
+
+```bash
+uv run ruff check .
+uv run ruff format --check .
 ```
 
 ## Disclaimer

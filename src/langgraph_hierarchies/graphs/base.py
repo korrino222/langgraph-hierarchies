@@ -25,7 +25,9 @@ class BaseGraph(StateGraph, ABC):
     # Set on concrete subclasses (class attributes, shared by all instances).
     name: str  # tool name when this graph is attached as a delegatable subagent
     description: str  # tool description shown to the parent LLM
-    args_schema: type[BaseModel]  # tool input schema; overridable per instance in __init__
+    args_schema: type[
+        BaseModel
+    ]  # tool input schema; overridable per instance in __init__
     include_in_progress: bool = True  # False hides this agent from progress counters
 
     _UNSET = object()
