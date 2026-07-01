@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from abc import ABC, abstractmethod
 from typing import Any
 
 from langchain_core.runnables import RunnableConfig
@@ -15,16 +16,17 @@ logger = logging.getLogger(__name__)
 
 
 class BaseGraphArgsSchema(BaseModel):
-    """Default empty args schema for graphs not exposed as tools."""
+    """Default empty args schema for graphs not accepting tool arguments."""
 
 
-class BaseGraph(StateGraph):
+class BaseGraph(StateGraph, ABC):
     """Class-as-factory base for hierarchy graphs."""
 
-    name: str
-    description: str
-    args_schema: type[BaseModel]
-    include_in_progress: bool = True
+    # Set on concrete subclasses (class attributes, shared by all instances).
+    name: str  # tool name when this graph is attached as a delegatable subagent
+    description: str  # tool description shown to the parent LLM
+    args_schema: type[BaseModel]  # tool input schema; overridable per instance in __init__
+    include_in_progress: bool = True  # False hides this agent from progress counters
 
     _UNSET = object()
 
@@ -47,11 +49,9 @@ class BaseGraph(StateGraph):
         self.compiled_subgraphs: list[CompiledGraph] = []
         self._enable_interrupts = False
 
+    @abstractmethod
     def build_topology(self) -> None:
         """Register core nodes and edges. Subclasses must override."""
-        raise NotImplementedError(
-            f"{type(self).__name__} must implement build_topology()"
-        )
 
     def compile_graph(
         self,
