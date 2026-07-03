@@ -57,41 +57,13 @@ Stories map to pytest markers for targeted regression:
 | `us06` | IRS multi-stage hierarchy |
 | `us07` | Responsibility boundary violations |
 
-## What's in 0.0.8
+## Changelog
 
-- **Lean sdist** — exclude `docs-site/`, `docs/`, `tests/`, and config dirs from the source distribution; sdist drops from 55 MB to ~120 KB
-
-## What's in 0.0.7
-
-- **computation_node config annotation** — fix `UserWarning` emitted by LangGraph when `SimpleGraph` subclasses use `from __future__ import annotations`; `config` is now typed as `RunnableConfig` (always provided at runtime)
-
-## What's in 0.0.6
-
-- **Managed state in Send payloads** — `ReactGraph` strips LangGraph-managed channels (e.g. `remaining_steps`) from `Send` state to avoid pregel warnings
-- **Concepts docs** — Mintlify pages for state, graph factories, compilation, `CompiledGraph`, and subagents
-
-## What's in 0.0.5
-
-- **Parallel tool calls** — `ReactGraph` dispatches multiple flat-tool calls in parallel; parallel batches that include a subagent are blocked with one error `ToolMessage` per `tool_call_id` so chat history stays valid for the next LLM turn
-
-## What's in 0.0.4
-
-- **Breaking rename** — `SubchainPolicy` → `SubagentPolicy`, `subchain_policy` → `subagent_policy`, `__subchain_stack__` → `__subagent_stack__` (no aliases; update imports and checkpoint state keys)
-
-## What's in 0.0.3
-
-- **LangSmith threads** — automatic `thread_id` normalization into `RunnableConfig` metadata at invoke time (see below)
-
-## What's in 0.0.2
-
-The mechanics behind decomposable hierarchies:
-
-- `BaseGraph` / `CompiledGraph` + phased compilation — each unit is a real invokable subgraph
-- `SubagentPolicy` — entry snapshot, clear/merge/discard, exit restore; isolate context at every seam
-- `ReactGraph` + iteration safety — per-agent limits, supervisor `task_iterations`, forced-exit report
-- Root compile (`compile_as_root`) and unified invocation — stream and checkpoint through the full tree
-- Compatibility harness (per-story pytest markers, CI) — benchmark units in isolation
-- `TodoGraph` + todo toolkit — batch processing with flat context; IRS hierarchy test fixture (`tests/irs_hierarchy/`)
+- **0.0.8** — lean sdist: exclude `docs-site/`, `docs/`, `tests/`, and config dirs; sdist drops ~55 MB → ~120 KB
+- **0.0.5–0.0.7** — parallel flat-tool calls in `ReactGraph`; managed-channel stripping in `Send` payloads; concepts docs; `computation_node` config-annotation warning fix
+- **0.0.4** — **breaking rename** `SubchainPolicy` → `SubagentPolicy` (`subchain_policy` → `subagent_policy`, `__subchain_stack__` → `__subagent_stack__`; no aliases — update imports and checkpoint state keys)
+- **0.0.3** — LangSmith threads: automatic `thread_id` normalization into `RunnableConfig` metadata at invoke time ([see below](#langsmith-threads))
+- **0.0.2** — foundational mechanics for decomposable hierarchies: `BaseGraph`/`CompiledGraph` phased compilation, `SubagentPolicy` context isolation, `ReactGraph` iteration safety, root compile (`compile_as_root`) + unified invocation, compatibility harness, `TodoGraph` + todo toolkit (`tests/irs_hierarchy/`)
 
 Planner/Executor, progress tracking, HITL: follow-on after v0.1.
 
