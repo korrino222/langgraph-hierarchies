@@ -34,6 +34,56 @@ const favicon = `${import.meta.env.BASE_URL}favicon.svg`;
         <slot />
       </div>
     </div>
+
+    <script>
+      import mermaid from 'mermaid';
+
+      let mermaidReady = false;
+
+      async function renderMermaidDiagrams() {
+        const blocks = document.querySelectorAll<HTMLElement>(
+          'pre[data-language="mermaid"]',
+        );
+        if (blocks.length === 0) return;
+
+        if (!mermaidReady) {
+          mermaid.initialize({
+            startOnLoad: false,
+            theme: 'neutral',
+            securityLevel: 'loose',
+          });
+          mermaidReady = true;
+        }
+
+        let index = 0;
+        for (const block of blocks) {
+          const lineNodes = block.querySelectorAll('.line');
+          const source = (
+            lineNodes.length
+              ? Array.from(lineNodes)
+                  .map((line) => line.textContent ?? '')
+                  .join('\n')
+              : (block.textContent ?? '')
+          ).trim();
+          if (!source) continue;
+
+          try {
+            const { svg } = await mermaid.render(
+              `mermaid-diagram-${Date.now()}-${index++}`,
+              source,
+            );
+            const wrapper = document.createElement('div');
+            wrapper.className = 'mermaid-diagram';
+            wrapper.innerHTML = svg;
+            block.replaceWith(wrapper);
+          } catch (error) {
+            console.error('Failed to render mermaid diagram', error);
+          }
+        }
+      }
+
+      document.addEventListener('astro:page-load', renderMermaidDiagrams);
+    </script>
   </body>
 </html>
 
@@ -50,5 +100,18 @@ const favicon = `${import.meta.env.BASE_URL}favicon.svg`;
   ::view-transition-new(*),
   ::view-transition-group(*) {
     animation-duration: 0s !important;
+  }
+</style>
+
+<style is:global>
+  .mermaid-diagram {
+    display: flex;
+    justify-content: center;
+    margin: 1.5rem 0;
+  }
+
+  .mermaid-diagram svg {
+    max-width: 100%;
+    height: auto;
   }
 </style>
