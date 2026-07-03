@@ -6,8 +6,8 @@ import { mintlify } from '@mintlify/astro';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  site: 'https://korrino222.github.io',
-  base: '/langgraph-hierarchies/',
+  site: 'https://hierarchies.ishish.io',
+  base: '/',
   integrations: [mintlify({ docsDir: '../docs' }), react(), mdx()],
   markdown: {
     shikiConfig: {
