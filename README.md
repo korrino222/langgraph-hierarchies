@@ -2,7 +2,7 @@
 
 **Decomposable agent hierarchies for [LangGraph](https://github.com/langchain-ai/langgraph).**
 
-**Documentation:** [https://korrino222.github.io/langgraph-hierarchies/](https://korrino222.github.io/langgraph-hierarchies/)
+**Documentation:** [https://hierarchies.ishish.io/](https://hierarchies.ishish.io/)
 
 **Status: early development (0.0.x).** API and scope are not stable. v0.1 will ship the keystone slice below.
 
@@ -39,7 +39,7 @@ Regression tests gate version bumps. A pair is listed here only once the full su
 2. Refresh the lockfile: `uv sync`.
 3. Run the full suite: `uv run pytest`.
 4. To isolate a failing story, run e.g. `uv run pytest -m us04` (see test markers below).
-5. When the suite is green, update the compatibility matrix above, the [docs compatibility page](docs/compatibility.mdx), and cut a release.
+5. When the suite is green, update the compatibility matrix above, the [docs compatibility page](https://hierarchies.ishish.io/compatibility), and cut a release.
 
 CI runs `ruff` and `pytest` on every push/PR (Python 3.10–3.13). Tests use scripted models only — no LLM API keys required.
 

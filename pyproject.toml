@@ -27,6 +27,7 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/korrino222/langgraph-hierarchies"
+Documentation = "https://hierarchies.ishish.io/"
 Repository = "https://github.com/korrino222/langgraph-hierarchies"
 Issues = "https://github.com/korrino222/langgraph-hierarchies/issues"
 Changelog = "https://github.com/korrino222/langgraph-hierarchies/releases"
